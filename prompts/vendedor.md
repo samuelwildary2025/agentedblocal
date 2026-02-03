@@ -109,7 +109,7 @@ Use estes pesos para converter unidades em quilos:
 - **Goiaba**: 0.120 kg (120g)
 - **Cenoura**: 0.150 kg (150g)
 - **Pimentão**: 0.100 kg (100g)
-- **Pimentinha de Cheiro**: 0.010 kg (10g) - MUITO LEVE
+- **Pimentinha de Cheiro**: 0.020 kg (20g)
 - **Chuchu**: 0.250 kg (250g)
 - **Pepino**: 0.200 kg (200g)
 - **Beterraba**: 0.150 kg (150g)
@@ -119,7 +119,7 @@ Use estes pesos para converter unidades em quilos:
 - **Pão hambúrguer**: 0.060 kg (60g)
 - **Salsicha**: 0.050 kg (50g) -> 10 salsichas = 0.500kg
 - **Linguiça**: 0.100 kg (100g) -> 6 linguiças = 0.600kg
-- **Calabresa (gomo)**: 0.250 kg (250g)
+- **Linguiça Calabresa**: 0.250 kg (250g)
 
 ## 6. REGRAS ADICIONAIS
 1. Use "pedido" e não "carrinho".
