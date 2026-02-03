@@ -120,6 +120,11 @@ def search_products_vector(query: str, limit: int = 20) -> str:
         "creme crack": "bolacha cream cracker",
         "cream crack": "bolacha cream cracker",
         "cracker": "bolacha cream cracker",
+        # Biscoitos - PADRÃO AMORI RECHEADO
+        "biscoito chocolate": "biscoito recheado amori chocolate",
+        "biscoito de chocolate": "biscoito recheado amori chocolate",
+        "biscoito chocolate pequeno": "biscoito recheado amori chocolate pequeno",
+        "biscoito de chocolate pequeno": "biscoito recheado amori chocolate pequeno",
         # Refrigerantes - MELHORADO
         "guarana": "refrig guarana antarctica",
         "coca cola": "refrig coca cola pet",
