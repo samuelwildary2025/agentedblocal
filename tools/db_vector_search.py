@@ -220,6 +220,11 @@ def search_products_vector(query: str, limit: int = 20) -> str:
         # A remoção de acentos é GENÉRICA (linha 236). Aqui só expandimos marcas abreviadas.
         "arroz vo": "arroz vo olimpio",  # "vo" → marca completa
         "vo olimpio": "vo olimpio",  # Manter se já vier completo
+        # Nescal = Nescau Líquido (caixinha pronta pra beber)
+        "nescal": "achoc liq nescau",
+        "nescau": "achoc liq nescau",  # Se pedir "nescau" solto, priorizar caixinha
+        "nescau po": "achoc po nescau",  # Se especificar pó, retorna pó
+        "nescau lata": "achoc po nescau",  # Lata = pó
     }
     
     

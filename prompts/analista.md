@@ -50,7 +50,13 @@ Se o termo contiver valor em dinheiro (ex: "5 reais de presunto"):
 - **PREFIRA O ITEM KG (GRANEL)** - Permite fracionar.
 - Itens de pacote têm preço fixo e não servem para compra por valor.
 
-### Fatiado vs Inteiro
+### REGRA FLV (Frutas, Legumes, Verduras) - CRÍTICO
+Quando o cliente pedir frutas, verduras ou legumes por UNIDADE (ex: "3 maçã", "6 bananas", "2 goiaba"):
+- **SEMPRE ESCOLHA O ITEM KG (GRANEL)** - Mesmo que exista bandeja/pacote.
+- Motivo: Clientes querem pesar as unidades, não comprar embalado.
+- Exemplo: "3 maçã" → Escolher "Maçã Nacional KG", NÃO "Maçã Bandeja 6un".
+
+### Fatiado vs Pacote (Frios/Embutidos)
 - Termo sem especificação ("Calabresa", "Mussarela") → **Prefira pacote fechado**
 - Termo com "fatiado", "cortado" → Escolha fatiado ou KG (mercado fatia)
 - Termo com valor em R$ → Prefira KG
