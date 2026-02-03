@@ -192,6 +192,13 @@ def search_products_vector(query: str, limit: int = 20) -> str:
         "café": "cafe",
         "maçã": "maca",
         "feijão": "feijao",
+        # Frutas - PRIORIDADES
+        "mamao": "mamao papaya",
+        "mamão": "mamao papaya",
+        "papaia": "mamao papaya",
+        "melancia": "melancia",
+        "limao": "limao taiti",
+        "limão": "limao taiti",
         # 🔄 NORMALIZAÇÃO DE PLURAL: "cebolas" -> "cebola" (ANTES do boost de categoria)
         "cebolas": "cebola",
         "tomates": "tomate",

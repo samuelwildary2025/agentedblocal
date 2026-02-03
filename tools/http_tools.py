@@ -467,7 +467,8 @@ def estoque_preco(ean: str) -> str:
                 ignora_estoque = any(x in cat for x in [
                     "PADARIA",  # Pães, bolos - feitos na hora
                     "FRIGORIFICO", "HORTI", "AÇOUGUE", "ACOUGUE", 
-                    "LEGUMES", "VERDURAS", "AVES", "CARNES"
+                    "LEGUMES", "VERDURAS", "AVES", "CARNES",
+                    "FLV", "FRUTA"
                 ])
                 
                 if ignora_estoque:
