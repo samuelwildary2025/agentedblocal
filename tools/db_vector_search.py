@@ -217,6 +217,8 @@ def search_products_vector(query: str, limit: int = 20) -> str:
         "amstel": "cerveja amstel lt",
         "bohemia": "cerveja bohemia lt",
         # Marcas locais / Correções específicas (vô -> vo olimpio)
+        "arroz vô parboizado": "arroz vo olimpio parboizado",
+        "arroz vo parboizado": "arroz vo olimpio parboizado",
         "arroz vô": "arroz vo olimpio",
         "arroz vo": "arroz vo olimpio",
         "vô": "vo",
