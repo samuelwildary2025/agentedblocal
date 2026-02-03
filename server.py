@@ -1,0 +1,1083 @@
+"""
+Servidor FastAPI para receber mensagens do WhatsApp e processar com o agente
+Suporta: Texto, Áudio (Transcrição), Imagem (Visão) e PDF (Extração de Texto + Link)
+Versão: 1.6.0 (Correção de LID e Buffer Personalizado)
+"""
+from fastapi import FastAPI, Request, HTTPException, BackgroundTasks
+from fastapi.responses import JSONResponse
+from pydantic import BaseModel, Field
+from typing import Optional, Dict, Any
+import requests
+from datetime import datetime
+import time
+import random
+import threading
+import re
+import io
+import asyncio
+from arq import create_pool
+from arq.connections import RedisSettings
+
+# Tenta importar pypdf para leitura de comprovantes
+try:
+    from pypdf import PdfReader
+except ImportError:
+    PdfReader = None
+
+from config.settings import settings
+from config.logger import setup_logger
+from agent_multiagent import run_agent_langgraph as run_agent, get_session_history
+from tools.whatsapp_api import whatsapp
+from tools.redis_tools import (
+    push_message_to_buffer,
+    get_buffer_length,
+    pop_all_messages,
+    set_agent_cooldown,
+    is_agent_in_cooldown,
+    get_order_session,
+    start_order_session,
+    refresh_session_ttl,
+    get_order_context,
+)
+
+logger = setup_logger(__name__)
+
+app = FastAPI(title="Agente de Supermercado", version="1.7.0")  # Queue-based version
+
+# ARQ Queue Pool (inicializado no startup)
+arq_pool = None
+
+# --- Models ---
+class WhatsAppMessage(BaseModel):
+    telefone: str
+    mensagem: str
+    message_id: Optional[str] = None
+    timestamp: Optional[str] = None
+    message_type: Optional[str] = "text"
+
+class AgentResponse(BaseModel):
+    success: bool
+    response: str
+    telefone: str
+    timestamp: str
+    error: Optional[str] = None
+
+# --- Helpers ---
+
+def process_pdf(message_id: str) -> tuple[Optional[str], Optional[str]]:
+    """
+    Baixa o PDF via nova API e extrai o texto.
+    Retorna (texto_extraido, base64_content).
+    """
+    if not PdfReader:
+        logger.error("❌ Biblioteca pypdf não instalada. Adicione ao requirements.txt")
+        return "[Erro: sistema não suporta leitura de PDF]", None
+
+    if not message_id:
+        return None, None
+    
+    logger.info(f"📄 Processando PDF: {message_id}")
+    
+    try:
+        import base64
+        
+        # Obter PDF via nova API (Base64)
+        media_data = whatsapp.get_media_base64(message_id)
+        
+        if not media_data or not media_data.get("base64"):
+            logger.error(f"❌ Falha ao obter PDF: {message_id}")
+            return None, None
+        
+        b64_content = media_data["base64"]
+        
+        # Decodificar Base64
+        pdf_bytes = base64.b64decode(b64_content)
+        
+        # Ler PDF em memória
+        f = io.BytesIO(pdf_bytes)
+        reader = PdfReader(f)
+        
+        text_content = []
+        for page in reader.pages:
+            text_content.append(page.extract_text())
+            
+        full_text = "\\n".join(text_content)
+        full_text = re.sub(r'\s+', ' ', full_text).strip()
+        
+        logger.info(f"✅ PDF lido com sucesso ({len(full_text)} chars)")
+        return full_text, b64_content
+        
+    except Exception as e:
+        logger.error(f"Erro ao ler PDF: {e}")
+        return None, None
+
+def transcribe_audio(message_id: str = None, base64_data: str = None, mimetype: str = None) -> Optional[str]:
+    """
+    Transcreve áudio usando Google Gemini.
+    
+    Prioridade:
+    1. Se base64_data for fornecido, usa diretamente (do webhook)
+    2. Senão, tenta baixar via API usando message_id
+    """
+    import base64
+    import tempfile
+    import os as os_module
+    
+    audio_bytes = None
+    mime_type_clean = (mimetype or "audio/ogg").split(";")[0].strip()
+    
+    # 1. Tentar usar Base64 direto (do webhook)
+    if base64_data:
+        try:
+            audio_bytes = base64.b64decode(base64_data)
+            logger.info(f"🎤 Usando áudio Base64 direto do webhook ({len(audio_bytes)} bytes)")
+        except Exception as e:
+            logger.error(f"Erro ao decodificar Base64 do webhook: {e}")
+    
+    # 2. Fallback: Tentar baixar via API
+    if audio_bytes is None and message_id:
+        logger.info(f"🎤 Tentando baixar áudio via API: {message_id}")
+        media_data = whatsapp.get_media_base64(message_id)
+        
+        if media_data and media_data.get("base64"):
+            try:
+                audio_bytes = base64.b64decode(media_data["base64"])
+                mime_type_clean = (media_data.get("mimetype") or mime_type_clean).split(";")[0].strip()
+                logger.info(f"🎤 Áudio baixado via API ({len(audio_bytes)} bytes)")
+            except Exception as e:
+                logger.error(f"Erro ao decodificar Base64 da API: {e}")
+        else:
+            logger.warning(f"⚠️ API não retornou Base64 para: {message_id}")
+    
+    # Se não conseguiu obter o áudio de nenhuma forma
+    if audio_bytes is None:
+        logger.error("❌ Não foi possível obter o áudio nem do webhook nem da API")
+        return None
+    
+    try:
+        if not settings.google_api_key:
+            logger.error("❌ GOOGLE_API_KEY não configurada no .env! Necessária para transcrição de áudio.")
+            return None
+
+        logger.info(f"🎧 Transcrevendo áudio com Gemini ({mime_type_clean})")
+        
+        from google import genai
+        client = genai.Client(api_key=settings.google_api_key)
+        
+        # Determinar extensão baseada no content-type
+        ext_map = {
+            'audio/ogg': '.ogg',
+            'audio/mpeg': '.mp3',
+            'audio/mp4': '.m4a',
+            'audio/wav': '.wav',
+            'audio/webm': '.webm',
+        }
+        ext = ext_map.get(mime_type_clean, '.ogg')
+        
+        # Salvar temporariamente
+        with tempfile.NamedTemporaryFile(suffix=ext, delete=False) as tmp:
+            tmp.write(audio_bytes)
+            tmp_path = tmp.name
+        
+        try:
+            # Upload do arquivo para Gemini com MIME TYPE explícito
+            audio_file = client.files.upload(
+                file=tmp_path,
+                config={'mime_type': mime_type_clean}
+            )
+            
+            # Transcrever usando Gemini
+            response = client.models.generate_content(
+                model=settings.gemini_audio_model,
+                contents=[
+                    "Você é um especialista em transcrição de áudio para Supermercados. O áudio pode conter ruído, nomes de produtos, quantidades e gírias. Transcreva com EXATIDÃO o que o cliente disse. Se estiver inaudível, retorne apenas [inaudível]. Ignore silêncios.",
+                    audio_file
+                ]
+            )
+            
+            transcription = response.text.strip() if response.text else None
+            
+            if transcription:
+                logger.info(f"✅ Áudio transcrito com Gemini: {transcription[:50]}...")
+                return transcription
+            else:
+                logger.warning("⚠️ Gemini retornou transcrição vazia")
+                return None
+                
+        finally:
+            # Limpar arquivo temporário
+            try:
+                os_module.unlink(tmp_path)
+            except:
+                pass
+            
+    except Exception as e:
+        logger.error(f"Erro transcrição Gemini: {e}")
+        return None
+
+def analyze_image(message_id: Optional[str], url: Optional[str] = None) -> Optional[str]:
+    if not settings.google_api_key:
+        return None
+
+    file_path = None
+    try:
+        from google import genai
+        import tempfile
+        import os as os_module
+        import base64
+
+        mime_type_clean = None
+        image_bytes = None
+
+        if message_id:
+            media_data = whatsapp.get_media_base64(message_id)
+            if media_data and media_data.get("base64"):
+                image_bytes = base64.b64decode(media_data["base64"])
+                mime_type_clean = (media_data.get("mimetype") or "image/jpeg").split(";")[0].strip()
+
+        if image_bytes is None and url:
+            resp = requests.get(url, timeout=20)
+            resp.raise_for_status()
+            image_bytes = resp.content
+            mime_type_clean = (resp.headers.get("Content-Type") or "image/jpeg").split(";")[0].strip()
+
+        if not image_bytes:
+            return None
+
+        ext_map = {
+            "image/jpeg": ".jpg",
+            "image/jpg": ".jpg",
+            "image/png": ".png",
+            "image/webp": ".webp",
+        }
+        ext = ext_map.get((mime_type_clean or "").lower(), ".jpg")
+
+        with tempfile.NamedTemporaryFile(suffix=ext, delete=False) as tmp:
+            tmp.write(image_bytes)
+            file_path = tmp.name
+
+        client = genai.Client(api_key=settings.google_api_key)
+        image_file = client.files.upload(file=file_path, config={"mime_type": mime_type_clean or "image/jpeg"})
+
+        prompt = (
+            "Analise cuidadosamente esta imagem. Identifique o que ela contém:\\n\\n"
+            "1. Se for um COMPROVANTE DE PAGAMENTO (PIX, transferência, recibo bancário): "
+            "Diga 'COMPROVANTE DE PAGAMENTO' e extraia: valor, data/hora, nome do pagador e do recebedor se visíveis.\\n\\n"
+            "2. Se for um PRODUTO: Retorne nome do produto, marca, versão/sabor/variante, tamanho/peso/volume.\\n\\n"
+            "3. Se não for identificável (foto borrada, pessoa, conversa): Diga 'Imagem não identificada'.\\n\\n"
+            "Retorne um texto curto em português. Não invente detalhes."
+        )
+
+        model_candidates = [settings.llm_model or "gemini-2.0-flash-lite", "gemini-2.0-flash"]
+        last_err = None
+        for model in model_candidates:
+            try:
+                response = client.models.generate_content(model=model, contents=[prompt, image_file])
+                txt = (response.text or "").strip()
+                if txt:
+                    return txt[:800]
+            except Exception as e:
+                last_err = e
+
+        if last_err:
+            logger.error(f"Erro visão Gemini: {last_err}")
+        return None
+
+    except Exception as e:
+        logger.error(f"Erro ao analisar imagem: {e}")
+        return None
+    finally:
+        if file_path:
+            try:
+                import os as os_module
+                os_module.unlink(file_path)
+            except Exception:
+                pass
+
+def _analyze_image_from_base64(base64_data: str, mimetype: str = None) -> Optional[str]:
+    """Analisa imagem diretamente do Base64 (sem precisar baixar via API)."""
+    if not settings.google_api_key or not base64_data:
+        return None
+    
+    file_path = None
+    try:
+        from google import genai
+        import tempfile
+        import os as os_module
+        import base64
+        
+        # Decodificar Base64
+        image_bytes = base64.b64decode(base64_data)
+        mime_type_clean = (mimetype or "image/jpeg").split(";")[0].strip()
+        
+        ext_map = {
+            "image/jpeg": ".jpg",
+            "image/jpg": ".jpg",
+            "image/png": ".png",
+            "image/webp": ".webp",
+        }
+        ext = ext_map.get(mime_type_clean.lower(), ".jpg")
+        
+        with tempfile.NamedTemporaryFile(suffix=ext, delete=False) as tmp:
+            tmp.write(image_bytes)
+            file_path = tmp.name
+        
+        client = genai.Client(api_key=settings.google_api_key)
+        image_file = client.files.upload(file=file_path, config={"mime_type": mime_type_clean})
+        
+        prompt = (
+            "Analise cuidadosamente esta imagem. Identifique o que ela contém:\\n\\n"
+            "1. Se for um COMPROVANTE DE PAGAMENTO (PIX, transferência, recibo bancário): "
+            "Diga 'COMPROVANTE DE PAGAMENTO' e extraia: valor, data/hora, nome do pagador e do recebedor se visíveis.\\n\\n"
+            "2. Se for um PRODUTO: Retorne nome do produto, marca, versão/sabor/variante, tamanho/peso/volume.\\n\\n"
+            "3. Se não for identificável (foto borrada, pessoa, conversa): Diga 'Imagem não identificada'.\\n\\n"
+            "Retorne um texto curto em português. Não invente detalhes."
+        )
+        
+        model = settings.llm_model or "gemini-2.0-flash-lite"
+        response = client.models.generate_content(model=model, contents=[prompt, image_file])
+        txt = (response.text or "").strip()
+        
+        if txt:
+            logger.info(f"✅ Imagem analisada via Base64: {txt[:50]}...")
+            return txt[:800]
+        return None
+        
+    except Exception as e:
+        logger.error(f"Erro ao analisar imagem Base64: {e}")
+        return None
+    finally:
+        if file_path:
+            try:
+                import os as os_module
+                os_module.unlink(file_path)
+            except:
+                pass
+
+def _extract_incoming(payload: Dict[str, Any]) -> Dict[str, Any]:
+    """
+    Normaliza e processa (Texto, Áudio, Imagem, Documento/PDF).
+    Suporta payload da nova API: { "event": "message", "data": { ... } }
+    """
+    
+    # DEBUG CRÍTICO
+    try:
+        keys = list(payload.keys())
+        logger.info(f"🔍 DEBUG EXTRACT START: Keys={keys}")
+    except: pass
+    
+    # Se o payload vier envelopado no formato novo
+    if "data" in payload and isinstance(payload["data"], dict):
+        payload = payload["data"]
+        try:
+            logger.info(f"🔍 DEBUG EXTRACT UNWRAPPED: Keys={list(payload.keys())} | From={payload.get('from')} | Body={payload.get('body')}")
+        except: pass
+
+    # ADAPTAÇÃO: Se o payload tiver uma chave 'message' (payload aninhado extra)
+    # Ex: { "event": "message", "data": { "instanceId": "...", "message": { ... } } }
+    # Mantemos o payload original para buscar metadados (como resolvedPhone)
+    original_data = payload.copy()
+    if "message" in payload and isinstance(payload["message"], dict):
+        payload = payload["message"]
+        try:
+             logger.info(f"🔍 DEBUG EXTRACT PROMOTED MESSAGE: Keys={list(payload.keys())}")
+        except: pass
+    else:
+        original_data = {} # Não precisa se não houve promoção
+
+    def _clean_number(jid: Any) -> Optional[str]:
+        """Extrai apenas o número de telefone de um JID válido."""
+        if not jid or not isinstance(jid, str): return None
+        
+        # Se tiver @lid, é ID de dispositivo (IGNORAR)
+        if "@lid" in jid: return None
+        
+        # Se tiver @g.us, é grupo (IGNORAR)
+        if "@g.us" in jid: return None
+        
+        # Pega a parte antes do @
+        # Funciona para: @s.whatsapp.net, @c.us, @lid
+        if "@" in jid:
+            jid = jid.split("@")[0]
+        
+        # Remove o :XX (device ID) se existir
+        # Ex: "558591517149:23" -> "558591517149"
+        if ":" in jid:
+            jid = jid.split(":")[0]
+            
+        # Remove tudo que não for dígito
+        num = re.sub(r"\\D", "", jid)
+        
+        # Validação básica (evita IDs estranhos)
+        # Aumentado limite superior para números internacionais
+        if len(num) > 20 or len(num) < 8:
+            return None
+            
+        return num
+
+    chat = payload.get("chat") or {}
+    message_any = payload.get("message") or {}
+    
+    if isinstance(payload.get("messages"), list):
+        try:
+            m0 = payload["messages"][0]
+            message_any = m0
+            chat = {"wa_id": m0.get("sender") or m0.get("chatid")}
+        except: pass
+
+    # --- LÓGICA DE TELEFONE BLINDADA ---
+    telefone = None
+    
+    # Ordem de prioridade para encontrar o número real
+    candidates = []
+    
+    # 0. Resolved Phone (PRIORIDADE MÁXIMA - para casos de LID)
+    candidates.append(original_data.get("resolvedPhone"))
+    candidates.append(payload.get("resolvedPhone"))
+    
+    # 1. Sender/ChatID (Geralmente o mais preciso: 5585...@s.whatsapp.net)
+    if isinstance(message_any, dict):
+        candidates.append(message_any.get("sender"))
+        candidates.append(message_any.get("chatid"))
+    
+    # 2. Objeto Chat
+    candidates.append(chat.get("id"))
+    candidates.append(chat.get("wa_id"))
+    candidates.append(chat.get("phone"))
+    
+    # 3. Payload Raiz (Menos confiável)
+    candidates.append(payload.get("from"))
+    candidates.append(payload.get("sender"))
+
+    # 4. Estrutura Baileys/Key (CRUCIAL PARA MÍDIA/ÁUDIO)
+    # Procura dentro de 'key' se existir no payload
+    if isinstance(payload.get("key"), dict):
+        candidates.append(payload["key"].get("remoteJid"))
+        candidates.append(payload["key"].get("participant")) # Para grupos (embora a gente ignore grupos)
+
+    # Varre a lista e pega o primeiro válido (sem LID)
+    for cand in candidates:
+        cleaned = _clean_number(cand)
+        if cleaned:
+            telefone = cleaned
+            break
+            
+    # Fallback de emergência (avisa no log)
+    if not telefone and payload.get("from"):
+        raw = str(payload.get("from"))
+        if "@lid" not in raw:
+            telefone = re.sub(r"\\D", "", raw)
+            logger.warning(f"⚠️ Usando fallback de telefone: {telefone}")
+
+    # --- Extração de Conteúdo (Adaptado para nova API) ---
+    # Na nova API, 'body' é o texto e 'mediaUrl' indica mídia
+    mensagem_texto = payload.get("body") or payload.get("text")
+    message_id = payload.get("id") or payload.get("messageid")
+    from_me = bool(payload.get("fromMe") or False)
+    
+    # Determinar tipo e buscar mídias aninhadas (Formato Baileys/Common)
+    msg_keys = list(payload.keys())
+    media_url = payload.get("mediaUrl") or payload.get("url")
+    
+    # NOVO: Capturar mediaBase64 diretamente do webhook (mais eficiente que download)
+    media_base64 = payload.get("mediaBase64")
+    media_mimetype = payload.get("mimetype")
+    media_caption = payload.get("caption")
+    
+    # Se tem mediaBase64, já sabemos que é mídia
+    if media_base64:
+        if media_mimetype and "audio" in media_mimetype:
+            msg_type = "audio"
+        elif media_mimetype and "pdf" in media_mimetype:
+            msg_type = "document"
+        else:
+            msg_type = "image"
+        # Usar caption como texto se existir
+        if media_caption:
+            mensagem_texto = media_caption
+    # Se não achou tipo explícito, tenta deduzir de chaves aninhadas common
+    elif any(k in msg_keys for k in ["imageMessage", "videoMessage", "viewOnceMessage", "image"]):
+        msg_type = "image"
+        sub = payload.get("imageMessage") or payload.get("image") or payload.get("viewOnceMessage")
+        if isinstance(sub, dict):
+            mensagem_texto = mensagem_texto or sub.get("caption") or sub.get("text")
+            media_url = media_url or sub.get("url")
+    elif any(k in msg_keys for k in ["audioMessage", "ptt", "audio"]):
+        msg_type = "audio"
+    elif any(k in msg_keys for k in ["documentMessage", "document"]):
+        msg_type = "document"
+    else:
+        msg_type = str(payload.get("type") or payload.get("messageType") or "chat").lower()
+
+    message_type = "text"
+    if msg_type in ["ptt", "audio"] or "audio" in msg_type:
+        message_type = "audio"
+    elif msg_type in ["image", "video"] or "image" in msg_type or (media_url and any(ext in str(media_url).lower() for ext in [".jpg", ".jpeg", ".png", ".webp", ".mp4"])):
+        message_type = "image"
+    elif msg_type == "document" or "document" in msg_type or (media_url and ".pdf" in str(media_url).lower()):
+        message_type = "document"
+
+    # Se for mídia, tenta pegar a URL direto do payload se vier
+    if message_type in ["image", "audio", "document"] and media_url:
+        # Na nova API, a URL já vem no payload
+        pass
+
+    # Lógica legada para garantir compatibilidade com estruturas antigas
+    if not mensagem_texto:
+        message_any = payload  # No novo formato, payload já é a mensagem
+        
+        raw_type = str(message_any.get("messageType") or "").lower()
+        media_type = str(message_any.get("mediaType") or "").lower()
+        base_type = str(message_any.get("type") or "").lower()
+        mimetype = str(message_any.get("mimetype") or "").lower()
+        
+        if "audio" in raw_type or "ptt" in media_type or "audio" in base_type:
+            message_type = "audio"
+        elif "image" in raw_type or "image" in media_type or "image" in base_type:
+            message_type = "image"
+        elif "document" in raw_type or "document" in base_type or "application/pdf" in mimetype:
+            message_type = "document"
+
+        content = message_any.get("content")
+        if isinstance(content, str) and not mensagem_texto:
+            mensagem_texto = content
+        elif isinstance(content, dict):
+            mensagem_texto = content.get("text") or content.get("caption") or mensagem_texto
+        
+        if not mensagem_texto:
+            txt = message_any.get("text")
+            if isinstance(txt, dict):
+                mensagem_texto = txt.get("body")
+            else:
+                mensagem_texto = txt or message_any.get("body")
+
+    if from_me:
+        # Se for mensagem enviada por MIM, tenta achar o destinatário
+        candidates_me = [chat.get("wa_id"), chat.get("phone"), payload.get("sender"), payload.get("to")]
+        telefone = next((re.sub(r"\\D", "", c) for c in candidates_me if c and "@lid" not in str(c)), telefone)
+
+    # --- Lógica de Mídia ---
+    if message_type == "audio" and not mensagem_texto:
+        # Prioriza Base64 do webhook (mais eficiente que API)
+        if media_base64:
+            logger.info(f"🎤 Transcrevendo áudio via Base64 direto do webhook...")
+            trans = transcribe_audio(message_id=message_id, base64_data=media_base64, mimetype=media_mimetype)
+        elif message_id:
+            # Fallback: tentar baixar via API
+            trans = transcribe_audio(message_id=message_id)
+        else:
+            trans = None
+            
+        mensagem_texto = f"[Áudio]: {trans}" if trans else "[Áudio inaudível]"
+            
+    elif message_type == "image":
+        caption = mensagem_texto or ""
+        analysis = None
+        
+        # NOVO: Tentar usar mediaBase64 direto (mais eficiente)
+        if media_base64:
+            try:
+                logger.info(f"📷 Analisando imagem via Base64 direto...")
+                analysis = _analyze_image_from_base64(media_base64, media_mimetype)
+            except Exception as e:
+                logger.error(f"Erro ao analisar imagem Base64: {e}")
+        
+        # Fallback: usar API de download (via Base64)
+        if not analysis:
+            analysis = analyze_image(message_id, media_url)
+        
+        if analysis:
+            base = caption.strip()
+            mensagem_texto = f"{base}\\n[Análise da imagem]: {analysis}".strip() if base else f"[Análise da imagem]: {analysis}"
+            
+            # AUTO-SAVE: Se for comprovante de pagamento, salvar Base64 no Redis automaticamente
+            if "COMPROVANTE" in analysis.upper() and media_base64:
+                from tools.redis_tools import set_comprovante
+                # Salvar o Base64 com prefixo data:image para o painel converter
+                mime = media_mimetype or "image/jpeg"
+                data_uri = f"data:{mime};base64,{media_base64}"
+                set_comprovante(telefone, data_uri)
+                logger.info(f"🧾 Comprovante Base64 salvo automaticamente para {telefone}")
+        else:
+            mensagem_texto = caption.strip() if caption else "[Imagem recebida]"
+
+    elif message_type == "document":
+        pdf_text = ""
+        pdf_b64 = media_base64 # Prioriza o que veio no webhook
+        
+        if message_id and not pdf_b64:
+            # Se não veio b64 no webhook, tenta baixar/processar
+            extracted_text, extracted_b64 = process_pdf(message_id)
+            if extracted_text:
+                pdf_text = f"\\n[Conteúdo PDF]: {extracted_text[:1200]}..."
+            if extracted_b64:
+                pdf_b64 = extracted_b64
+        elif pdf_b64 and message_id:
+            # Se veio b64, ainda tentamos extrair texto se possível (mas sem baixar de novo se passarmos o stream?
+            # Por simplicidade, se já temos b64, process_pdf baixaria de novo via API?
+            # A função process_pdf usa get_media_base64.
+            # Vamos tentar extrair texto só se tivermos pypdf e o bytes
+            if PdfReader:
+                try:
+                    import base64
+                    pdf_bytes = base64.b64decode(pdf_b64)
+                    f = io.BytesIO(pdf_bytes)
+                    reader = PdfReader(f)
+                    text_content = [page.extract_text() for page in reader.pages]
+                    full_text = "\\n".join(text_content)
+                    full_text = re.sub(r'\s+', ' ', full_text).strip()
+                    if full_text:
+                        pdf_text = f"\\n[Conteúdo PDF]: {full_text[:1200]}..."
+                except Exception as e:
+                    logger.error(f"Erro extração texto PDF local: {e}")
+
+        # AUTO-SAVE PDF (Comprovante)
+        # Se tem texto extraído ou caption contendo palavras-chave
+        keywords = ["comprovante", "pix", "pagamento", "recibo", "transferencia", "transferência", "comprovante"]
+        content_check = (mensagem_texto or "") + (pdf_text or "") + (media_caption or "")
+        is_receipt = any(k in content_check.lower() for k in keywords)
+        
+        # Salvar se for identificado como recibo OU se estivermos num fluxo muito óbvio (ex: PDF enviado sozinho)
+        # Por segurança, salvamos se tivermos o binário. O agente decide se usa ou não, 
+        # mas como o finalizar_pedido_tool pega o ÚLTIMO comprovante salvo, é bom garantir.
+        if pdf_b64:
+            from tools.redis_tools import set_comprovante
+            mime = media_mimetype or "application/pdf"
+            # O painel/backend precisa saber lidar com data URI de PDF
+            data_uri = f"data:{mime};base64,{pdf_b64}"
+            set_comprovante(telefone, data_uri)
+            logger.info(f"🧾 PDF Comprovante salvo automaticamente para {telefone} (Size: {len(pdf_b64)})")
+            
+            # Avisar no texto que foi salvo
+            mensagem_texto = f"📄 Documento PDF Recebido e Salvo como Comprovante. {media_caption or ''} {pdf_text}"
+        else:
+            if pdf_text:
+                mensagem_texto = f"📄 Comprovante/PDF Recebido (Texto extraído). {pdf_text}"
+            else:
+                mensagem_texto = "[PDF recebido, não foi possível extrair texto ou salvar arquivo]"
+
+    return {
+        "telefone": telefone,
+        "mensagem_texto": mensagem_texto,
+        "message_type": message_type,
+        "message_id": message_id,
+        "from_me": from_me,
+        "media_url": media_url,
+        "media_base64": media_base64,
+        "media_mimetype": media_mimetype,
+    }
+
+def send_whatsapp_message(telefone: str, mensagem: str) -> bool:
+    """Envia mensagem usando a nova classe WhatsAppAPI."""
+    
+    # Configuração de split de mensagens
+    # Max 500 chars por mensagem para não enviar textões
+    max_len = 500
+    msgs = []
+    
+    if len(mensagem) > max_len:
+        # Divide por parágrafos duplos primeiro
+        paragrafos = mensagem.split('\\n\\n')
+        curr = ""
+        
+        for p in paragrafos:
+            # Se o parágrafo sozinho é muito grande, divide por quebras simples
+            if len(p) > max_len:
+                if curr:
+                    msgs.append(curr.strip())
+                    curr = ""
+                # Divide parágrafo grande por linhas
+                linhas = p.split('\\n')
+                for linha in linhas:
+                    if len(curr) + len(linha) + 1 <= max_len:
+                        curr += linha + "\\n"
+                    else:
+                        if curr: msgs.append(curr.strip())
+                        curr = linha + "\\n"
+            elif len(curr) + len(p) + 2 <= max_len:
+                curr += p + "\\n\\n"
+            else:
+                if curr: msgs.append(curr.strip())
+                curr = p + "\\n\\n"
+        
+        if curr: msgs.append(curr.strip())
+    else:
+        msgs = [mensagem]
+    
+    try:
+        for i, msg in enumerate(msgs):
+            # Usa a nova API
+            whatsapp.send_text(telefone, msg)
+            
+            # Delay entre mensagens para parecer mais natural (exceto última)
+            if i < len(msgs) - 1:
+                time.sleep(random.uniform(0.8, 1.5))
+                
+        return True
+    except Exception as e:
+        logger.error(f"Erro envio: {e}")
+        return False
+
+# --- Presença & Buffer ---
+presence_sessions = {}
+buffer_sessions = {}
+
+def send_presence(num, type_):
+    """Envia status: 'composing' (digitando) ou 'paused' (para de digitar)."""
+    # A API aceita diretamente: composing, recording, paused, available, unavailable
+    whatsapp.send_presence(num, type_)
+
+def process_async(tel, msg, mid=None):
+    """
+    Processa mensagem do Buffer.
+    Fluxo Humano:
+    1. Espera (simula leitura).
+    2. Marca como LIDO (Azul).
+    3. Digita (composing).
+    4. Processa (IA).
+    5. Para de digitar (paused).
+    6. Envia.
+    """
+    try:
+        num = re.sub(r"\\D", "", tel)
+        
+        # 1. Simular "Lendo" (Delay Humano)
+        tempo_leitura = random.uniform(2.0, 4.0) 
+        time.sleep(tempo_leitura)
+
+        # 2. Marcar como LIDO (Azul) AGORA
+        # Usa o telefone (chat_id) E o message_id para marcar como lido
+        logger.info(f"👀 Marcando chat {tel} como lido... (mid={mid})")
+        whatsapp.mark_as_read(tel, message_id=mid)
+        time.sleep(0.8) # Delay tático: Garante que o usuário veja o AZUL antes de ver o "Digitando..."
+
+        # 3. Começar a "Digitar"
+        send_presence(num, "composing")
+        
+        # 4. Processamento IA
+        res = run_agent(tel, msg)
+        txt = res.get("output", "Erro ao processar.")
+        
+        # 5. Parar "Digitar"
+        send_presence(num, "paused")
+        time.sleep(0.5) # Pausa dramática antes de chegar
+
+        # 6. Enviar Mensagem (Inteligente: Texto ou Imagem)
+        # Regex para encontrar todas as URLs de imagem (jpg, png, jpeg, webp)
+        # OTIMIZADO: Evita pontuação final (.,;!) e captura múltiplos
+        regex = r'(https?://[^\s]+\.(?:jpg|jpeg|png|webp))'
+        urls_encontradas = re.findall(regex, txt, re.IGNORECASE)
+        
+        if urls_encontradas:
+            # Texto limpo: remove todos os links para não ficar redundante no WhatsApp
+            texto_limpo = txt
+            for url in urls_encontradas:
+                # Substitui links seguidos opcionalmente por quebras de linha/espaços
+                texto_limpo = re.sub(re.escape(url) + r'[\\s\\n]*', '', texto_limpo).strip()
+            
+            logger.info(f"📸 Detectadas {len(urls_encontradas)} URLs de imagem. Texto limpo: {texto_limpo[:50]}...")
+            
+            # 1. Enviar primeiro o TEXTO como mensagem separada (se houver texto)
+            if texto_limpo:
+                whatsapp.send_text(tel, texto_limpo)
+                # Pequeno delay térmico antes das fotos
+                time.sleep(1.0)
+            
+            # 2. Enviar cada imagem
+            for i, image_url in enumerate(urls_encontradas):
+                logger.info(f"📸 Processando imagem [{i+1}/{len(urls_encontradas)}]: {image_url}")
+                logger.info(f"⬇️ Baixando imagem para enviar como arquivo...")
+                
+                try:
+                    # Baixar imagem para memória
+                    import base64
+                    img_resp = requests.get(image_url, timeout=15)
+                    img_resp.raise_for_status()
+                    
+                    # Converter para Base64
+                    img_b64 = base64.b64encode(img_resp.content).decode('utf-8')
+                    mime = img_resp.headers.get("Content-Type", "image/jpeg")
+                    
+                    # Enviar como mídia (sem caption agora)
+                    whatsapp.send_media(tel, caption="", base64_data=img_b64, mimetype=mime)
+                    
+                    # Pequeno delay entre imagens
+                    if i < len(urls_encontradas) - 1:
+                        time.sleep(1.2)
+                        
+                except Exception as e:
+                    logger.error(f"❌ Erro ao baixar/enviar imagem {image_url}: {e}")
+                    # Fallback: Tentar enviar via URL
+                    whatsapp.send_media(tel, media_url=image_url, caption="")
+        else:
+            send_whatsapp_message(tel, txt)
+
+    except Exception as e:
+        logger.error(f"Erro async: {e}")
+    finally:
+        # Garante limpeza
+        send_presence(tel, "paused")
+        presence_sessions.pop(re.sub(r"\\D", "", tel), None)
+
+def buffer_loop(tel):
+    """
+    Loop do Buffer (3 ciclos de 5s = 15 segundos)
+    Total espera máxima: ~15 segundos
+    
+    IMPORTANTE: Após processar, verifica se chegaram novas mensagens durante
+    a execução do agente e as processa também (evita mensagens "perdidas").
+    """
+    try:
+        n = re.sub(r"\\D","",tel)
+        
+        while True:  # Loop principal para pegar mensagens que chegam durante processamento
+            prev = get_buffer_length(n)
+            
+            # Se não tem mensagens, sair
+            if prev == 0:
+                break
+                
+            stall = 0
+            
+            # Esperar por mais mensagens (3 ciclos de 3.5s)
+            while stall < 3:
+                time.sleep(5)  # 3 ciclos de 5s = 15 segundos total
+                curr = get_buffer_length(n)
+                if curr > prev: prev, stall = curr, 0
+                else: stall += 1
+            
+            # Consumir e processar mensagens
+            # AGORA RETORNA TEXTOS E LAST_MID
+            msgs, last_mid = pop_all_messages(n)
+            
+            # Usa ' | ' como separador para o agente entender que são itens/pedidos separados
+            final = " | ".join([m for m in msgs if m.strip()])
+            
+            if not final:
+                break
+                
+            # Obter contexto de sessão
+            order_ctx = get_order_context(n, final)
+            if order_ctx:
+                final = f"{order_ctx}\\n\\n{final}"
+            
+            # Processar (enquanto isso, novas mensagens podem chegar)
+            # Passa o last_mid para marcar como lido
+            process_async(n, final, mid=last_mid)
+            
+            # Após processar, o loop vai verificar se tem novas mensagens
+            # Se tiver, processa novamente. Se não, sai.
+            
+    except Exception as e:
+        logger.error(f"Erro no buffer_loop: {e}")
+    finally: 
+        buffer_sessions.pop(re.sub(r"\\D","",tel), None)
+
+# --- ARQ Pool Lifecycle ---
+@app.on_event("startup")
+async def startup_event():
+    """Inicializa pool ARQ no startup"""
+    global arq_pool
+    logger.info("🚀 Inicializando ARQ Pool...")
+    arq_pool = await create_pool(
+        RedisSettings(
+            host=settings.redis_host,
+            port=settings.redis_port,
+            password=settings.redis_password,
+            database=settings.redis_db,
+        )
+    )
+    logger.info("✅ ARQ Pool inicializado com sucesso")
+
+@app.on_event("shutdown")
+async def shutdown_event():
+    """Fecha pool ARQ no shutdown"""
+    global arq_pool
+    if arq_pool:
+        logger.info("🔄 Fechando ARQ Pool...")
+        await arq_pool.close()
+        logger.info("✅ ARQ Pool fechado")
+
+# --- ARQ Enqueue Helpers ---
+async def _enqueue_process_job(telefone: str, mensagem: str, message_id: str = None):
+    """
+    Enfileira job de processamento de mensagem no ARQ.
+    
+    Args:
+        telefone: Número do cliente
+        mensagem: Texto da mensagem
+        message_id: ID da mensagem (opcional)
+    """
+    global arq_pool
+    if not arq_pool:
+        logger.error("❌ ARQ Pool não inicializado! Usando fallback síncrono.")
+        # Fallback: processar síncrono (não ideal mas evita crash)
+        process_async(telefone, mensagem, message_id)
+        return
+    
+    try:
+        job = await arq_pool.enqueue_job(
+            "process_message",  # Nome da função no worker.py
+            telefone,
+            mensagem,
+            message_id,
+        )
+        logger.info(f"🎉 Job enfileirado: {job.job_id} | Cliente: {telefone}")
+    except Exception as e:
+        logger.error(f"❌ Erro ao enfileirar job: {e}")
+        # Fallback para não perder mensagem
+        process_async(telefone, mensagem, message_id)
+
+async def _enqueue_buffer_job(telefone: str):
+    """
+    Aguarda buffer acumular mensagens e depois enfileira job ARQ.
+    Equivalente ao antigo buffer_loop, mas enfileira job em vez de processar diretamente.
+    
+    Args:
+        telefone: Número do cliente (apenas números)
+    """
+    try:
+        n = re.sub(r"\\D","",telefone)
+        
+        while True:
+            prev = get_buffer_length(n)
+            if prev == 0:
+                break
+            
+            stall = 0
+            # Esperar por mais mensagens (3 ciclos de 5s)
+            while stall < 3:
+                await asyncio.sleep(5)
+                curr = get_buffer_length(n)
+                if curr > prev: 
+                    prev, stall = curr, 0
+                else: 
+                    stall += 1
+            
+            # Consumir mensagens do buffer
+            msgs, mids = pop_all_messages(n)
+            final = " | ".join([m for m in msgs if m.strip()])
+            
+            if not final:
+                break
+            
+            # Obter contexto de sessão
+            order_ctx = get_order_context(n, final)
+            if order_ctx:
+                final = f"{order_ctx}\n\n{final}"
+            
+            # MUDANÇA: Enfileirar job com LISTA de IDs
+            await _enqueue_process_job(n, final, mids)
+            
+    except Exception as e:
+        logger.error(f"Erro no buffer_loop async: {e}")
+    finally:
+        buffer_sessions.pop(re.sub(r"\\D","",telefone), None)
+
+# --- Endpoints ---
+@app.get("/")
+async def root(): return {"status":"online", "ver":"1.7.0", "queue":"enabled"}
+
+@app.get("/health")
+async def health(): return {"status":"healthy", "ts":datetime.now().isoformat()}
+
+@app.post("/")
+@app.post("/webhook/whatsapp")
+async def webhook(req: Request, tasks: BackgroundTasks):
+    try:
+        pl = await req.json()
+        
+        # Log bruto para capturar segredos do payload
+        logger.info(f"📥 RAW: {pl.get('event', '?')} | Keys: {list(pl.keys())} | DataKeys: {list(pl.get('data', {}).keys()) if isinstance(pl.get('data'), dict) else '?'}")
+        
+        data = _extract_incoming(pl)
+        tel, txt, from_me = data["telefone"], data["mensagem_texto"], data["from_me"]
+        msg_type = data.get("message_type") or data.get("message_any", {}).get("type", "text")
+        msg_id = data.get("message_id")  # ID da mensagem para mark_as_read
+        media_url = data.get("media_url")
+
+        # Fallback: Se o tipo vier como 'text' mas o corpo estiver vazio, pode ser uma mídia sem legenda
+        # que o bridge não classificou direito. Vamos tentar tratar como imagem.
+        if msg_type == "text" and not txt and msg_id:
+            logger.info(f"🕵️ Detectada possível mídia sem tipo em {msg_id}. Tentando conversão...")
+            data["message_type"] = "image"
+            msg_type = "image"
+            # O processamento abaixo cuidará de chamar o download via ID
+
+        # Só bloqueamos se não houver telefone, OU se for texto puro sem conteúdo e sem mídia/ID
+        if not tel or (not txt and msg_type == "text" and not media_url): 
+            logger.warning(f"⚠️ IGNORED | Tel: {tel} | Txt: {txt} | Type: {msg_type} | ID: {msg_id}")
+            return JSONResponse(content={"status":"ignored"})
+        
+        # Se for mídia sem texto, cria um placeholder para não perder no buffer
+        if msg_type in ["image", "audio", "document"] and not txt and msg_id:
+            txt = f"[MEDIA:{msg_type.upper()}:{msg_id}]"
+            logger.info(f"📎 Placeholder de mídia criado: {txt}")
+        
+        logger.info(f"In: {tel} | {msg_type} | {txt[:50] if txt else '[Mídia]'}")
+
+        if from_me:
+            # Detectar Human Takeover: Se o número do agente enviou mensagem
+            # Ativar cooldown para pausar a IA
+            agent_number = (settings.whatsapp_agent_number or "").strip()
+            if agent_number:
+                # Limpar para comparação
+                agent_clean = re.sub(r"\\D", "", agent_number)
+                # Se a mensagem foi enviada PARA um cliente (não é conversa interna)
+                if tel and tel != agent_clean:
+                    # Ativar cooldown - IA pausa por X minutos
+                    ttl = settings.human_takeover_ttl  # Default: 900s (15min)
+                    set_agent_cooldown(tel, ttl)
+                    logger.info(f"🙋 Human Takeover ativado para {tel} - IA pausa por {ttl//60}min")
+            
+            try: get_session_history(tel).add_ai_message(txt)
+            except: pass
+            return JSONResponse(content={"status":"ignored_self"})
+
+        num = re.sub(r"\\D","",tel)
+        
+        # NOTA: 'send_presence' imediato removido para evitar comportamento robótico.
+        # O cliente verá 'digitando' apenas após o buffer, no process_async.
+
+        active, _ = is_agent_in_cooldown(num)
+        if active:
+            push_message_to_buffer(num, txt, message_id=msg_id)
+            # SALVAR MENSAGEM DO CLIENTE NO HISTÓRICO mesmo durante cooldown
+            try:
+                from langchain_core.messages import HumanMessage
+                get_session_history(tel).add_message(HumanMessage(content=txt))
+                logger.info(f"📝 Mensagem do cliente salva no histórico (cooldown ativo)")
+            except Exception as e:
+                logger.warning(f"Erro ao salvar mensagem durante cooldown: {e}")
+            return JSONResponse(content={"status":"cooldown"})
+
+        try:
+            if not presence_sessions.get(num):
+                presence_sessions[num] = True
+        except: pass
+
+        if push_message_to_buffer(num, txt, message_id=msg_id):
+            if not buffer_sessions.get(num):
+                buffer_sessions[num] = True
+                # MUDANÇA: Em vez de Thread, enfileira job ARQ
+                asyncio.create_task(_enqueue_buffer_job(num))
+        else:
+            # Mensagem única (sem buffer) - enfileira diretamente
+            await _enqueue_process_job(tel, txt, msg_id)
+
+        return JSONResponse(content={"status":"buffering"})
+    except Exception as e:
+        logger.error(f"Erro webhook: {e}")
+        return JSONResponse(status_code=500, content={"detail": str(e)})
+
+@app.post("/message")
+async def direct_msg(msg: WhatsAppMessage):
+    try:
+        res = run_agent(msg.telefone, msg.mensagem)
+        return AgentResponse(success=True, response=res["output"], telefone=msg.telefone, timestamp="")
+    except Exception as e:
+        return AgentResponse(success=False, response="", telefone="", error=str(e))
+
+if __name__ == "__main__":
+    import uvicorn
+    uvicorn.run("server:app", host=settings.server_host, port=settings.server_port, log_level=settings.log_level.lower())

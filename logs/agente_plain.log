@@ -1,0 +1,343 @@
+2026-02-03 12:45:28 - __main__ - INFO - 🚀 Iniciando ARQ Worker...
+2026-02-03 12:45:28 - __main__ - INFO - 📊 Configuração: max_jobs=15, max_tries=3
+2026-02-03 12:45:28 - server - INFO - 🚀 Inicializando ARQ Pool...
+2026-02-03 12:45:33 - server - INFO - ✅ ARQ Pool inicializado com sucesso
+2026-02-03 13:27:32 - server - INFO - 📥 RAW: message | Keys: ['event', 'instanceId', 'timestamp', 'data'] | DataKeys: ['instanceId', 'id', 'from', 'to', 'body', 'type', 'timestamp', 'fromMe', 'isGroup', 'pushName']
+2026-02-03 13:27:32 - server - INFO - 🔍 DEBUG EXTRACT START: Keys=['event', 'instanceId', 'timestamp', 'data']
+2026-02-03 13:27:32 - server - INFO - 🔍 DEBUG EXTRACT UNWRAPPED: Keys=['instanceId', 'id', 'from', 'to', 'body', 'type', 'timestamp', 'fromMe', 'isGroup', 'pushName'] | From=558587520060:3@s.whatsapp.net | Body=2 batata rufles vermelho pequena 
+1 Cheetos azul
+1 fandagos 
+1 cookies 
+1 animado zoom Wafer de chocolate 
+1 refrigerante Pepsi de 2 litros
+1 cenoura 
+1 batata inglesa 
+1 cebola 
+1 pimentão 
+2 pimentinha de cheiro
+2026-02-03 13:27:32 - server - INFO - In: 558587520060 | text | 2 batata rufles vermelho pequena 
+1 Cheetos azul
+1
+2026-02-03 13:27:32 - tools.redis_tools - INFO - Conectado ao Redis: projeto_queiroz_redis_agente:6379
+2026-02-03 13:27:32 - tools.redis_tools - INFO - Mensagem empilhada no buffer: msgbuf:558587520060
+2026-02-03 13:27:47 - tools.redis_tools - INFO - Buffer consumido para 558587520060: 1 mensagens. MIDs: 1
+2026-02-03 13:27:47 - tools.redis_tools - INFO - 📦 Nova sessão de pedido iniciada para 558587520060 (TTL: 30min)
+2026-02-03 13:27:47 - server - INFO - 🎉 Job enfileirado: 8b8c5ac17fa94456aba648ffcc67186a | Cliente: 558587520060
+2026-02-03 13:27:50 - __main__ - INFO - 👀 Marcando chat 558587520060 como lido... (MIDs: 1)
+2026-02-03 13:27:50 - tools.whatsapp_api - INFO - 👀 mark_as_read: {'chatId': '558587520060', 'messageId': '3B4F64FCFD83F5F03DD7'}
+2026-02-03 13:27:50 - tools.whatsapp_api - INFO - ✅ Chat 558587520060 marcado como lido
+2026-02-03 13:27:51 - agent_multiagent - INFO - [MULTI-AGENT] Telefone: 558587520060 | Msg: [SESSÃO] Nova conversa. Monte o pedido normalmente...
+2026-02-03 13:27:52 - tools.time_tool - INFO - Hora atual consultada: 📅 Terça-feira, 03/02/2026 às 10:27:52 (-03)
+2026-02-03 13:27:52 - agent_multiagent - INFO - 📨 Enviando 1 mensagens para o grafo
+2026-02-03 13:27:52 - agent_multiagent - INFO - 🧠 [ORCHESTRATOR] Analisando intenção...
+2026-02-03 13:27:52 - agent_multiagent - INFO - 📄 Carregando prompt: /app/prompts/orchestrator.md
+2026-02-03 13:27:53 - agent_multiagent - INFO - 🧠 [ORCHESTRATOR] Intenção detectada: vendas (raw: 'vendas')
+2026-02-03 13:27:53 - agent_multiagent - INFO - 👩‍💼 [VENDEDOR] Processando...
+2026-02-03 13:27:53 - agent_multiagent - INFO - 📄 Carregando prompt: /app/prompts/vendedor.md
+2026-02-03 13:27:55 - tools.search_agent - INFO - 🕵️ [SUB-AGENT] Modo de busca: lote | termos: ['batata rufles vermelho pequena', 'Cheetos azul', 'fandagos', 'cookies', 'animado zoom Wafer de chocolate', 'refrigerante Pepsi 2 litros', 'cenoura', 'batata inglesa', 'cebola', 'pimentão', 'pimentinha de cheiro']
+2026-02-03 13:27:56 - tools.vector_search_subagent - INFO - 🧩 [SUB-SUB-AGENT][VETORIAL] Buscando (DIRECT): 'fandangos' (limit=15)
+2026-02-03 13:27:56 - tools.db_vector_search - INFO - 🔍 [VECTOR SEARCH] Buscando: 'fandangos'
+2026-02-03 13:27:56 - tools.vector_search_subagent - INFO - 🧩 [SUB-SUB-AGENT][VETORIAL] Buscando (DIRECT): 'cenoura' (limit=15)
+2026-02-03 13:27:56 - tools.db_vector_search - INFO - 🎯 [BOOST] Query melhorada: 'cenoura hortifruti legumes verduras frutas'
+2026-02-03 13:27:56 - tools.db_vector_search - INFO - 🔍 [VECTOR SEARCH] Buscando: 'cenoura' → 'cenoura hortifruti legumes verduras frutas'
+2026-02-03 13:27:56 - tools.vector_search_subagent - INFO - 🧩 [SUB-SUB-AGENT][VETORIAL] Buscando (DIRECT): 'batata inglesa' (limit=15)
+2026-02-03 13:27:56 - tools.db_vector_search - INFO - 🎯 [BOOST] Query melhorada: 'batata inglesa hortifruti legumes verduras frutas'
+2026-02-03 13:27:56 - tools.db_vector_search - INFO - 🔍 [VECTOR SEARCH] Buscando: 'batata inglesa' → 'batata inglesa hortifruti legumes verduras frutas'
+2026-02-03 13:27:57 - tools.db_vector_search - INFO - 🔀 [HYBRID SEARCH] Query: 'cenoura' → 'cenoura hortifruti legumes verduras frutas'
+2026-02-03 13:27:57 - tools.db_vector_search - INFO - 🔀 [HYBRID SEARCH] Query: 'fandangos' → 'fandangos'
+2026-02-03 13:27:57 - tools.vector_search_subagent - INFO - 🧩 [SUB-SUB-AGENT][VETORIAL] Buscando (DIRECT): 'Cheetos azul' (limit=15)
+2026-02-03 13:27:57 - tools.db_vector_search - INFO - 🔍 [VECTOR SEARCH] Buscando: 'Cheetos azul'
+2026-02-03 13:27:57 - tools.vector_search_subagent - INFO - 🧩 [SUB-SUB-AGENT][VETORIAL] Buscando (DIRECT): 'cookies' (limit=15)
+2026-02-03 13:27:57 - tools.db_vector_search - INFO - 🔍 [VECTOR SEARCH] Buscando: 'cookies'
+2026-02-03 13:27:57 - tools.db_vector_search - INFO - 🔀 [HYBRID SEARCH] Query: 'batata inglesa' → 'batata inglesa hortifruti legumes verduras frutas'
+2026-02-03 13:27:57 - tools.db_vector_search - INFO - 🔀 [HYBRID SEARCH] Query: 'Cheetos azul' → 'Cheetos azul'
+2026-02-03 13:27:57 - tools.db_vector_search - INFO - 🔀 [HYBRID SEARCH] Query: 'cookies' → 'cookies'
+2026-02-03 13:27:57 - tools.vector_search_subagent - INFO - 🧩 [SUB-SUB-AGENT][VETORIAL] Buscando (DIRECT): 'refrigerante Pepsi 2 litros' (limit=15)
+2026-02-03 13:27:57 - tools.db_vector_search - INFO - 🔄 [TRADUÇÃO PARCIAL] 'refrigerante' → 'refrig' | Result: 'refrig pepsi 2 litros'
+2026-02-03 13:27:57 - tools.db_vector_search - INFO - 🔍 [VECTOR SEARCH] Buscando: 'refrig pepsi 2 litros'
+2026-02-03 13:27:57 - tools.vector_search_subagent - INFO - 🧩 [SUB-SUB-AGENT][VETORIAL] Buscando (DIRECT): 'batata rufles vermelho pequena' (limit=15)
+2026-02-03 13:27:57 - tools.db_vector_search - INFO - 🎯 [BOOST] Query melhorada: 'batata rufles vermelho pequena hortifruti legumes verduras frutas'
+2026-02-03 13:27:57 - tools.db_vector_search - INFO - 🔍 [VECTOR SEARCH] Buscando: 'batata rufles vermelho pequena' → 'batata rufles vermelho pequena hortifruti legumes verduras frutas'
+2026-02-03 13:27:57 - tools.vector_search_subagent - INFO - 🧩 [SUB-SUB-AGENT][VETORIAL] Buscando (DIRECT): 'pimentão' (limit=15)
+2026-02-03 13:27:57 - tools.db_vector_search - INFO - 🎯 [BOOST] Query melhorada: 'pimentao hortifruti legumes verduras frutas'
+2026-02-03 13:27:57 - tools.db_vector_search - INFO - 🔍 [VECTOR SEARCH] Buscando: 'pimentao' → 'pimentao hortifruti legumes verduras frutas'
+2026-02-03 13:27:58 - tools.db_vector_search - INFO - 🔀 [HYBRID SEARCH] Query: 'refrig pepsi 2 litros' → 'refrig pepsi 2 litros'
+2026-02-03 13:27:58 - tools.vector_search_subagent - INFO - 🧩 [SUB-SUB-AGENT][VETORIAL] Buscando (DIRECT): 'Wafer de chocolate' (limit=15)
+2026-02-03 13:27:58 - tools.db_vector_search - INFO - 🔍 [VECTOR SEARCH] Buscando: 'Wafer de chocolate'
+2026-02-03 13:27:58 - tools.vector_search_subagent - INFO - 🧩 [SUB-SUB-AGENT][VETORIAL] Buscando (DIRECT): 'animado zoom Wafer de chocolate' (limit=15)
+2026-02-03 13:27:58 - tools.db_vector_search - INFO - 🔍 [VECTOR SEARCH] Buscando: 'animado zoom Wafer de chocolate'
+2026-02-03 13:27:58 - tools.vector_search_subagent - INFO - 🧩 [SUB-SUB-AGENT][VETORIAL] Buscando (DIRECT): 'wafer chocolate' (limit=15)
+2026-02-03 13:27:58 - tools.db_vector_search - INFO - 🔍 [VECTOR SEARCH] Buscando: 'wafer chocolate'
+2026-02-03 13:27:58 - tools.vector_search_subagent - INFO - 🧩 [SUB-SUB-AGENT][VETORIAL] Buscando (DIRECT): 'cebola' (limit=15)
+2026-02-03 13:27:58 - tools.db_vector_search - INFO - 🎯 [BOOST] Query melhorada: 'cebola hortifruti legumes verduras frutas'
+2026-02-03 13:27:58 - tools.db_vector_search - INFO - 🔍 [VECTOR SEARCH] Buscando: 'cebola' → 'cebola hortifruti legumes verduras frutas'
+2026-02-03 13:27:58 - tools.db_vector_search - INFO - 🔀 [HYBRID SEARCH] Query: 'Wafer de chocolate' → 'Wafer de chocolate'
+2026-02-03 13:27:59 - tools.db_vector_search - INFO - 🔀 [HYBRID SEARCH] Query: 'animado zoom Wafer de chocolate' → 'animado zoom Wafer de chocolate'
+2026-02-03 13:27:59 - tools.db_vector_search - INFO - 🔀 [HYBRID SEARCH] Query: 'wafer chocolate' → 'wafer chocolate'
+2026-02-03 13:27:59 - tools.db_vector_search - INFO - 🔀 [HYBRID SEARCH] Query: 'batata rufles vermelho pequena' → 'batata rufles vermelho pequena hortifruti legumes verduras frutas'
+2026-02-03 13:27:59 - tools.db_vector_search - INFO - 🔀 [HYBRID SEARCH] Query: 'pimentao' → 'pimentao hortifruti legumes verduras frutas'
+2026-02-03 13:27:59 - tools.db_vector_search - INFO - 🔀 [HYBRID SEARCH] Query: 'cebola' → 'cebola hortifruti legumes verduras frutas'
+2026-02-03 13:28:04 - tools.db_vector_search - INFO - 🔍 [VECTOR SEARCH] Encontrados 15 resultados
+2026-02-03 13:28:04 - tools.db_vector_search - INFO - ⚡ [RERANK] Reordenando 14 resultados com FlashRank...
+2026-02-03 13:28:04 - tools.db_vector_search - INFO - 🔍 [VECTOR SEARCH] Encontrados 15 resultados
+2026-02-03 13:28:04 - tools.db_vector_search - INFO - ⚡ [RERANK] Reordenando 15 resultados com FlashRank...
+2026-02-03 13:28:05 - tools.db_vector_search - INFO - 🔍 [VECTOR SEARCH] Encontrados 15 resultados
+2026-02-03 13:28:05 - tools.db_vector_search - INFO - 🔍 [VECTOR SEARCH] Encontrados 15 resultados
+2026-02-03 13:28:05 - tools.db_vector_search - INFO - 🔍 [VECTOR SEARCH] Encontrados 15 resultados
+2026-02-03 13:28:05 - tools.db_vector_search - INFO - 🔍 [VECTOR SEARCH] Encontrados 15 resultados
+2026-02-03 13:28:05 - tools.db_vector_search - INFO - ⚡ [RERANK] Reordenando 15 resultados com FlashRank...
+2026-02-03 13:28:05 - tools.db_vector_search - INFO - 🔍 [VECTOR SEARCH] Encontrados 15 resultados
+2026-02-03 13:28:05 - tools.db_vector_search - INFO - ⚡ [RERANK] Reordenando 15 resultados com FlashRank...
+2026-02-03 13:28:05 - tools.db_vector_search - INFO - ⚡ [RERANK] Reordenando 15 resultados com FlashRank...
+2026-02-03 13:28:05 - tools.db_vector_search - INFO - 🔍 [VECTOR SEARCH] Encontrados 15 resultados
+2026-02-03 13:28:05 - tools.db_vector_search - INFO - 🔍 [VECTOR SEARCH] Encontrados 15 resultados
+2026-02-03 13:28:05 - tools.db_vector_search - INFO - 🔍 [VECTOR SEARCH] Encontrados 15 resultados
+2026-02-03 13:28:05 - tools.db_vector_search - INFO - ⚡ [RERANK] Reordenando 15 resultados com FlashRank...
+2026-02-03 13:28:05 - tools.db_vector_search - INFO - 🔍 [VECTOR SEARCH] Encontrados 15 resultados
+2026-02-03 13:28:05 - tools.db_vector_search - INFO - ⚡ [RERANK] Reordenando 15 resultados com FlashRank...
+2026-02-03 13:28:05 - tools.db_vector_search - INFO - 🔍 [VECTOR SEARCH] Encontrados 15 resultados
+2026-02-03 13:28:05 - tools.db_vector_search - INFO - ⚡ [RERANK] Reordenando 15 resultados com FlashRank...
+2026-02-03 13:28:05 - tools.db_vector_search - INFO - ⚡ [RERANK] Reordenando 15 resultados com FlashRank...
+2026-02-03 13:28:05 - tools.db_vector_search - INFO - ⚡ [RERANK] Reordenando 15 resultados com FlashRank...
+2026-02-03 13:28:05 - tools.db_vector_search - INFO - ⚡ [RERANK] Reordenando 15 resultados com FlashRank...
+2026-02-03 13:28:05 - tools.db_vector_search - INFO - ⚡ [RERANK] Reordenando 15 resultados com FlashRank...
+2026-02-03 13:28:05 - tools.db_vector_search - INFO - ✅ [RERANK] Reordenação concluída. Top 1 antigo score: 0.995 -> Novo: 0.997
+2026-02-03 13:28:05 - tools.db_vector_search - INFO - 📏 [GENERIC BOOST] Aplicando reordenação para: 'pimentao'
+2026-02-03 13:28:05 - tools.db_vector_search - INFO -    🏆 Top 1 Generic: PITOMBA setor HORTI-FRUTI categoria FRUTAS subcategoria
+2026-02-03 13:28:05 - tools.db_vector_search - INFO -    🏆 Top 2 Generic: PIMENTAO VERDE  kg setor HORTI-FRUTI categoria LEGUMES E VERDURAS subcategoria
+2026-02-03 13:28:05 - tools.db_vector_search - INFO -    🏆 Top 3 Generic: PIMENTAO AMARELO kg setor HORTI-FRUTI categoria LEGUMES E VERDURAS subcategoria
+2026-02-03 13:28:05 - tools.db_vector_search - INFO - ✅ [RERANK] Reordenação concluída. Top 1 antigo score: 0.964 -> Novo: 0.964
+2026-02-03 13:28:05 - tools.db_vector_search - INFO - 📏 [GENERIC BOOST] Aplicando reordenação para: 'cookies'
+2026-02-03 13:28:05 - tools.db_vector_search - INFO -    🏆 Top 1 Generic: COOKIE AMORI 40G BAUNILHA setor BISCOITOS E BOLACHAS categoria COOKIE subcategoria
+2026-02-03 13:28:05 - tools.db_vector_search - INFO -    🏆 Top 2 Generic: COOKIE AMORI 40G CHOCOLATE setor BISCOITOS E BOLACHAS categoria COOKIE subcategoria
+2026-02-03 13:28:05 - tools.db_vector_search - INFO -    🏆 Top 3 Generic: BISC RICH ESCURETO COOKIE 80G setor BISCOITOS E BOLACHAS categoria COOKIE subcategoria
+2026-02-03 13:28:05 - tools.db_vector_search - INFO - ✅ [RERANK] Reordenação concluída. Top 1 antigo score: 0.999 -> Novo: 0.999
+2026-02-03 13:28:05 - tools.db_vector_search - INFO - ✅ [RERANK] Reordenação concluída. Top 1 antigo score: 0.999 -> Novo: 0.999
+2026-02-03 13:28:05 - tools.db_vector_search - INFO - ✅ [RERANK] Reordenação concluída. Top 1 antigo score: 0.035 -> Novo: 0.038
+2026-02-03 13:28:05 - tools.db_vector_search - INFO - 📏 [GENERIC BOOST] Aplicando reordenação para: 'batata rufles vermelho pequena'
+2026-02-03 13:28:05 - tools.db_vector_search - INFO -    🏆 Top 1 Generic: BATATA BRANCA kg setor HORTI-FRUTI categoria LEGUMES E VERDURAS subcategoria
+2026-02-03 13:28:05 - tools.db_vector_search - INFO -    🏆 Top 2 Generic: BATATA INGLESA  kg setor HORTI-FRUTI categoria LEGUMES E VERDURAS subcategoria
+2026-02-03 13:28:05 - tools.db_vector_search - INFO -    🏆 Top 3 Generic: RUCULA EFRAIM setor HORTI-FRUTI categoria FOLHAGENS subcategoria
+2026-02-03 13:28:06 - tools.db_vector_search - INFO - ✅ [RERANK] Reordenação concluída. Top 1 antigo score: 0.018 -> Novo: 0.021
+2026-02-03 13:28:06 - tools.db_vector_search - INFO - ✅ [RERANK] Reordenação concluída. Top 1 antigo score: 1.000 -> Novo: 1.000
+2026-02-03 13:28:06 - tools.db_vector_search - INFO - ✅ [RERANK] Reordenação concluída. Top 1 antigo score: 0.074 -> Novo: 0.916
+2026-02-03 13:28:06 - tools.db_vector_search - INFO - 📏 [GENERIC BOOST] Aplicando reordenação para: 'cenoura'
+2026-02-03 13:28:06 - tools.db_vector_search - INFO -    🏆 Top 1 Generic: CAJU BDJ setor HORTI-FRUTI categoria FRUTAS subcategoria
+2026-02-03 13:28:06 - tools.db_vector_search - INFO -    🏆 Top 2 Generic: ACEROLA 500g setor HORTI-FRUTI categoria FRUTAS subcategoria
+2026-02-03 13:28:06 - tools.db_vector_search - INFO -    🏆 Top 3 Generic: ACEROLA LESSA 500g setor HORTI-FRUTI categoria FRUTAS subcategoria
+2026-02-03 13:28:06 - tools.db_vector_search - INFO - ✅ [RERANK] Reordenação concluída. Top 1 antigo score: 0.994 -> Novo: 0.994
+2026-02-03 13:28:06 - tools.db_vector_search - INFO - ✅ [RERANK] Reordenação concluída. Top 1 antigo score: 0.998 -> Novo: 0.998
+2026-02-03 13:28:06 - tools.db_vector_search - INFO - 📏 [GENERIC BOOST] Aplicando reordenação para: 'batata inglesa'
+2026-02-03 13:28:06 - tools.db_vector_search - INFO - ✅ [RERANK] Reordenação concluída. Top 1 antigo score: 0.979 -> Novo: 0.988
+2026-02-03 13:28:06 - tools.db_vector_search - INFO -    🏆 Top 1 Generic: BATATA INGLESA  kg setor HORTI-FRUTI categoria LEGUMES E VERDURAS subcategoria
+2026-02-03 13:28:06 - tools.db_vector_search - INFO -    🏆 Top 2 Generic: BATATA BRANCA kg setor HORTI-FRUTI categoria LEGUMES E VERDURAS subcategoria
+2026-02-03 13:28:06 - tools.db_vector_search - INFO -    🏆 Top 3 Generic: BATATA PALITO AURORA 400G setor CONGELADOS categoria BATATA FRITA CONG subcategoria
+2026-02-03 13:28:06 - tools.db_vector_search - INFO - ✅ [RERANK] Reordenação concluída. Top 1 antigo score: 0.923 -> Novo: 0.923
+2026-02-03 13:28:06 - tools.db_vector_search - INFO - 📏 [GENERIC BOOST] Aplicando reordenação para: 'cebola'
+2026-02-03 13:28:06 - tools.db_vector_search - INFO -    🏆 Top 1 Generic: CEBOLA BRANCA  kg setor HORTI-FRUTI categoria LEGUMES E VERDURAS subcategoria
+2026-02-03 13:28:06 - tools.db_vector_search - INFO -    🏆 Top 2 Generic: LICHIA bdj setor HORTI-FRUTI categoria FRUTAS subcategoria
+2026-02-03 13:28:06 - tools.db_vector_search - INFO -    🏆 Top 3 Generic: ACEROLA 500g setor HORTI-FRUTI categoria FRUTAS subcategoria
+2026-02-03 13:28:06 - tools.db_vector_search - INFO - 📏 [GENERIC BOOST] Aplicando reordenação para: 'fandangos'
+2026-02-03 13:28:06 - tools.db_vector_search - INFO -    🏆 Top 1 Generic: SALG FANDANGOS 33g BACON setor BOMBONIERE categoria CHILITO BATATA CHIPS PIPOCA subcategoria SALGADINHO(CHILITO)
+2026-02-03 13:28:06 - tools.db_vector_search - INFO -    🏆 Top 2 Generic: SALG FANDANGOS 45g BACON setor BOMBONIERE categoria CHILITO BATATA CHIPS PIPOCA subcategoria SALGADINHO(CHILITO)
+2026-02-03 13:28:06 - tools.db_vector_search - INFO -    🏆 Top 3 Generic: SALG FANDANGOS 37g QUEIJO setor BOMBONIERE categoria CHILITO BATATA CHIPS PIPOCA subcategoria SALGADINHO(CHILITO)
+2026-02-03 13:28:06 - tools.redis_tools - INFO - Conectado ao Redis: projeto_queiroz_redis_agente:6379
+2026-02-03 13:28:06 - tools.http_tools - INFO - Consultando estoque_preco por EAN: http://45.178.95.233:5001/api/Produto/GetProdutosEAN/210
+2026-02-03 13:28:06 - tools.http_tools - INFO - Consultando estoque_preco por EAN: http://45.178.95.233:5001/api/Produto/GetProdutosEAN/7892840822057
+2026-02-03 13:28:06 - tools.http_tools - INFO - Consultando estoque_preco por EAN: http://45.178.95.233:5001/api/Produto/GetProdutosEAN/7892840800000
+2026-02-03 13:28:06 - tools.http_tools - INFO - Consultando estoque_preco por EAN: http://45.178.95.233:5001/api/Produto/GetProdutosEAN/7892840800246
+2026-02-03 13:28:06 - tools.http_tools - INFO - EAN 210: 1 item(s) disponíveis após filtragem
+2026-02-03 13:28:06 - tools.http_tools - INFO - EAN 7892840822057: 0 item(s) disponíveis após filtragem
+2026-02-03 13:28:07 - tools.http_tools - INFO - Consultando estoque_preco por EAN: http://45.178.95.233:5001/api/Produto/GetProdutosEAN/204
+2026-02-03 13:28:07 - tools.http_tools - INFO - Consultando estoque_preco por EAN: http://45.178.95.233:5001/api/Produto/GetProdutosEAN/228
+2026-02-03 13:28:07 - tools.http_tools - INFO - Consultando estoque_preco por EAN: http://45.178.95.233:5001/api/Produto/GetProdutosEAN/234
+2026-02-03 13:28:07 - tools.http_tools - INFO - Consultando estoque_preco por EAN: http://45.178.95.233:5001/api/Produto/GetProdutosEAN/235
+2026-02-03 13:28:07 - tools.http_tools - INFO - EAN 7892840800246: 1 item(s) disponíveis após filtragem
+2026-02-03 13:28:07 - tools.http_tools - INFO - EAN 7892840800000: 1 item(s) disponíveis após filtragem
+2026-02-03 13:28:07 - tools.http_tools - INFO - Consultando estoque_preco por EAN: http://45.178.95.233:5001/api/Produto/GetProdutosEAN/27891152340215
+2026-02-03 13:28:07 - tools.http_tools - INFO - Consultando estoque_preco por EAN: http://45.178.95.233:5001/api/Produto/GetProdutosEAN/7891152340211
+2026-02-03 13:28:07 - tools.http_tools - INFO - EAN 204: 1 item(s) disponíveis após filtragem
+2026-02-03 13:28:07 - tools.http_tools - INFO - EAN 228: 1 item(s) disponíveis após filtragem
+2026-02-03 13:28:07 - tools.http_tools - INFO - EAN 235: 1 item(s) disponíveis após filtragem
+2026-02-03 13:28:07 - tools.http_tools - INFO - EAN 234: 1 item(s) disponíveis após filtragem
+2026-02-03 13:28:07 - tools.http_tools - INFO - EAN 7891152340211: 1 item(s) disponíveis após filtragem
+2026-02-03 13:28:07 - tools.http_tools - INFO - EAN 27891152340215: 1 item(s) disponíveis após filtragem
+2026-02-03 13:28:07 - tools.vector_search_subagent - INFO - 🧩 [SUB-SUB-AGENT][VETORIAL] Buscando (DIRECT): 'ruffles batata pequena' (limit=15)
+2026-02-03 13:28:07 - tools.db_vector_search - INFO - 🎯 [BOOST] Query melhorada: 'ruffles batata pequena hortifruti legumes verduras frutas'
+2026-02-03 13:28:07 - tools.db_vector_search - INFO - 🔍 [VECTOR SEARCH] Buscando: 'ruffles batata pequena' → 'ruffles batata pequena hortifruti legumes verduras frutas'
+2026-02-03 13:28:07 - tools.vector_search_subagent - INFO - 🧩 [SUB-SUB-AGENT][VETORIAL] Buscando (DIRECT): 'rufles batata vermelha' (limit=15)
+2026-02-03 13:28:07 - tools.db_vector_search - INFO - 🎯 [BOOST] Query melhorada: 'rufles batata vermelha hortifruti legumes verduras frutas'
+2026-02-03 13:28:07 - tools.db_vector_search - INFO - 🔍 [VECTOR SEARCH] Buscando: 'rufles batata vermelha' → 'rufles batata vermelha hortifruti legumes verduras frutas'
+2026-02-03 13:28:07 - tools.vector_search_subagent - INFO - 🧩 [SUB-SUB-AGENT][VETORIAL] Buscando (DIRECT): 'rufles' (limit=15)
+2026-02-03 13:28:07 - tools.db_vector_search - INFO - 🔍 [VECTOR SEARCH] Buscando: 'rufles'
+2026-02-03 13:28:07 - tools.http_tools - INFO - Consultando estoque_preco por EAN: http://45.178.95.233:5001/api/Produto/GetProdutosEAN/77891152305912
+2026-02-03 13:28:07 - tools.http_tools - INFO - Consultando estoque_preco por EAN: http://45.178.95.233:5001/api/Produto/GetProdutosEAN/17891152801276
+2026-02-03 13:28:07 - tools.http_tools - INFO - Consultando estoque_preco por EAN: http://45.178.95.233:5001/api/Produto/GetProdutosEAN/17896024760880
+2026-02-03 13:28:07 - tools.http_tools - INFO - Consultando estoque_preco por EAN: http://45.178.95.233:5001/api/Produto/GetProdutosEAN/7891152305968
+2026-02-03 13:28:07 - tools.http_tools - INFO - Consultando estoque_preco por EAN: http://45.178.95.233:5001/api/Produto/GetProdutosEAN/7891962050713
+2026-02-03 13:28:07 - tools.http_tools - INFO - Consultando estoque_preco por EAN: http://45.178.95.233:5001/api/Produto/GetProdutosEAN/7892840821067
+2026-02-03 13:28:07 - tools.vector_search_subagent - INFO - 🧩 [SUB-SUB-AGENT][VETORIAL] Buscando (DIRECT): 'Cheetos azul' (limit=15)
+2026-02-03 13:28:07 - tools.db_vector_search - INFO - 🔍 [VECTOR SEARCH] Buscando: 'Cheetos azul'
+2026-02-03 13:28:07 - tools.vector_search_subagent - INFO - 🧩 [SUB-SUB-AGENT][VETORIAL] Buscando (DIRECT): 'Cheetos lua' (limit=15)
+2026-02-03 13:28:07 - tools.db_vector_search - INFO - 🔍 [VECTOR SEARCH] Buscando: 'Cheetos lua'
+2026-02-03 13:28:07 - tools.vector_search_subagent - INFO - 🧩 [SUB-SUB-AGENT][VETORIAL] Buscando (DIRECT): 'Cheetos doce' (limit=15)
+2026-02-03 13:28:07 - tools.db_vector_search - INFO - ⏭️ [BOOST SKIP] Produto processado detectado, pulando boost hortifruti
+2026-02-03 13:28:07 - tools.db_vector_search - INFO - 🔍 [VECTOR SEARCH] Buscando: 'Cheetos doce'
+2026-02-03 13:28:07 - tools.vector_search_subagent - INFO - 🧩 [SUB-SUB-AGENT][VETORIAL] Buscando (DIRECT): 'Cheetos doce azul' (limit=15)
+2026-02-03 13:28:07 - tools.db_vector_search - INFO - ⏭️ [BOOST SKIP] Produto processado detectado, pulando boost hortifruti
+2026-02-03 13:28:07 - tools.db_vector_search - INFO - 🔍 [VECTOR SEARCH] Buscando: 'Cheetos doce azul'
+2026-02-03 13:28:07 - tools.http_tools - INFO - EAN 77891152305912: 1 item(s) disponíveis após filtragem
+2026-02-03 13:28:07 - tools.http_tools - INFO - EAN 17891152801276: 0 item(s) disponíveis após filtragem
+2026-02-03 13:28:07 - tools.http_tools - INFO - EAN 17896024760880: 0 item(s) disponíveis após filtragem
+2026-02-03 13:28:07 - tools.http_tools - INFO - EAN 7891152305968: 0 item(s) disponíveis após filtragem
+2026-02-03 13:28:07 - tools.http_tools - INFO - EAN 7891962050713: 0 item(s) disponíveis após filtragem
+2026-02-03 13:28:07 - tools.http_tools - INFO - EAN 7892840821067: 0 item(s) disponíveis após filtragem
+2026-02-03 13:28:07 - tools.db_vector_search - INFO - 🔀 [HYBRID SEARCH] Query: 'rufles' → 'rufles'
+2026-02-03 13:28:07 - tools.db_vector_search - INFO - 🔀 [HYBRID SEARCH] Query: 'rufles batata vermelha' → 'rufles batata vermelha hortifruti legumes verduras frutas'
+2026-02-03 13:28:07 - tools.http_tools - INFO - Consultando estoque_preco por EAN: http://45.178.95.233:5001/api/Produto/GetProdutosEAN/208
+2026-02-03 13:28:07 - tools.http_tools - INFO - Consultando estoque_preco por EAN: http://45.178.95.233:5001/api/Produto/GetProdutosEAN/212
+2026-02-03 13:28:07 - tools.db_vector_search - INFO - 🔀 [HYBRID SEARCH] Query: 'ruffles batata pequena' → 'ruffles batata pequena hortifruti legumes verduras frutas'
+2026-02-03 13:28:07 - tools.http_tools - INFO - Consultando estoque_preco por EAN: http://45.178.95.233:5001/api/Produto/GetProdutosEAN/209
+2026-02-03 13:28:08 - tools.db_vector_search - INFO - 🔀 [HYBRID SEARCH] Query: 'Cheetos azul' → 'Cheetos azul'
+2026-02-03 13:28:08 - tools.http_tools - INFO - EAN 212: 1 item(s) disponíveis após filtragem
+2026-02-03 13:28:08 - tools.http_tools - INFO - EAN 208: 1 item(s) disponíveis após filtragem
+2026-02-03 13:28:08 - tools.db_vector_search - INFO - 🔀 [HYBRID SEARCH] Query: 'Cheetos doce azul' → 'Cheetos doce azul'
+2026-02-03 13:28:08 - tools.http_tools - INFO - EAN 209: 1 item(s) disponíveis após filtragem
+2026-02-03 13:28:08 - tools.db_vector_search - INFO - 🔀 [HYBRID SEARCH] Query: 'Cheetos doce' → 'Cheetos doce'
+2026-02-03 13:28:08 - tools.db_vector_search - INFO - 🔀 [HYBRID SEARCH] Query: 'Cheetos lua' → 'Cheetos lua'
+2026-02-03 13:28:08 - tools.http_tools - INFO - Consultando estoque_preco por EAN: http://45.178.95.233:5001/api/Produto/GetProdutosEAN/7891962054100
+2026-02-03 13:28:08 - tools.http_tools - INFO - Consultando estoque_preco por EAN: http://45.178.95.233:5001/api/Produto/GetProdutosEAN/7891962054117
+2026-02-03 13:28:08 - tools.http_tools - INFO - Consultando estoque_preco por EAN: http://45.178.95.233:5001/api/Produto/GetProdutosEAN/7891962071619
+2026-02-03 13:28:08 - tools.http_tools - INFO - EAN 7891962054117: 0 item(s) disponíveis após filtragem
+2026-02-03 13:28:08 - tools.http_tools - INFO - EAN 7891962054100: 1 item(s) disponíveis após filtragem
+2026-02-03 13:28:08 - tools.vector_search_subagent - INFO - 🧩 [SUB-SUB-AGENT][VETORIAL] Buscando (DIRECT): 'pimentinha de cheiro' (limit=15)
+2026-02-03 13:28:08 - tools.db_vector_search - INFO - 🔍 [VECTOR SEARCH] Buscando: 'pimentinha de cheiro'
+2026-02-03 13:28:08 - tools.http_tools - INFO - EAN 7891962071619: 0 item(s) disponíveis após filtragem
+2026-02-03 13:28:09 - tools.db_vector_search - INFO - 🔀 [HYBRID SEARCH] Query: 'pimentinha de cheiro' → 'pimentinha de cheiro'
+2026-02-03 13:28:09 - tools.db_vector_search - INFO - 🔍 [VECTOR SEARCH] Encontrados 15 resultados
+2026-02-03 13:28:09 - tools.db_vector_search - INFO - ⚡ [RERANK] Reordenando 15 resultados com FlashRank...
+2026-02-03 13:28:09 - tools.db_vector_search - INFO - ✅ [RERANK] Reordenação concluída. Top 1 antigo score: 0.037 -> Novo: 0.037
+2026-02-03 13:28:09 - tools.db_vector_search - INFO - 📏 [GENERIC BOOST] Aplicando reordenação para: 'rufles'
+2026-02-03 13:28:09 - tools.db_vector_search - INFO -    🏆 Top 1 Generic: RUCULA EFRAIM setor HORTI-FRUTI categoria FOLHAGENS subcategoria
+2026-02-03 13:28:09 - tools.db_vector_search - INFO -    🏆 Top 2 Generic: RATICIDA KLERAT GRANUL 25G (1X40) setor LIMPEZA categoria PESTICIDAS subcategoria RATICIDA
+2026-02-03 13:28:09 - tools.db_vector_search - INFO -    🏆 Top 3 Generic: RATICIDA KLERAT GRANUL 25G (1X40) setor LIMPEZA categoria PESTICIDAS subcategoria RATICIDA
+2026-02-03 13:28:09 - tools.db_vector_search - INFO - 🔍 [VECTOR SEARCH] Encontrados 15 resultados
+2026-02-03 13:28:09 - tools.db_vector_search - INFO - 🔍 [VECTOR SEARCH] Encontrados 15 resultados
+2026-02-03 13:28:09 - tools.db_vector_search - INFO - ⚡ [RERANK] Reordenando 15 resultados com FlashRank...
+2026-02-03 13:28:09 - tools.db_vector_search - INFO - ⚡ [RERANK] Reordenando 15 resultados com FlashRank...
+2026-02-03 13:28:09 - tools.db_vector_search - INFO - 🔍 [VECTOR SEARCH] Encontrados 15 resultados
+2026-02-03 13:28:09 - tools.db_vector_search - INFO - ⚡ [RERANK] Reordenando 15 resultados com FlashRank...
+2026-02-03 13:28:09 - tools.db_vector_search - INFO - 🔍 [VECTOR SEARCH] Encontrados 15 resultados
+2026-02-03 13:28:09 - tools.db_vector_search - INFO - ⚡ [RERANK] Reordenando 15 resultados com FlashRank...
+2026-02-03 13:28:09 - tools.db_vector_search - INFO - 🔍 [VECTOR SEARCH] Encontrados 15 resultados
+2026-02-03 13:28:09 - tools.db_vector_search - INFO - ⚡ [RERANK] Reordenando 15 resultados com FlashRank...
+2026-02-03 13:28:09 - tools.db_vector_search - INFO - ✅ [RERANK] Reordenação concluída. Top 1 antigo score: 0.018 -> Novo: 0.021
+2026-02-03 13:28:09 - tools.db_vector_search - INFO - ✅ [RERANK] Reordenação concluída. Top 1 antigo score: 0.997 -> Novo: 0.997
+2026-02-03 13:28:09 - tools.db_vector_search - INFO - ✅ [RERANK] Reordenação concluída. Top 1 antigo score: 0.007 -> Novo: 0.010
+2026-02-03 13:28:09 - tools.db_vector_search - INFO - ✅ [RERANK] Reordenação concluída. Top 1 antigo score: 0.225 -> Novo: 0.378
+2026-02-03 13:28:09 - tools.db_vector_search - INFO - 📏 [GENERIC BOOST] Aplicando reordenação para: 'rufles batata vermelha'
+2026-02-03 13:28:09 - tools.db_vector_search - INFO -    🏆 Top 1 Generic: BATATA BRANCA kg setor HORTI-FRUTI categoria LEGUMES E VERDURAS subcategoria
+2026-02-03 13:28:09 - tools.db_vector_search - INFO -    🏆 Top 2 Generic: RUCULA EFRAIM setor HORTI-FRUTI categoria FOLHAGENS subcategoria
+2026-02-03 13:28:09 - tools.db_vector_search - INFO -    🏆 Top 3 Generic: SALADA DE FRUTAS QUEIROZ setor HORTI-FRUTI categoria FRUTAS subcategoria
+2026-02-03 13:28:09 - tools.db_vector_search - INFO - ✅ [RERANK] Reordenação concluída. Top 1 antigo score: 0.005 -> Novo: 0.009
+2026-02-03 13:28:09 - tools.db_vector_search - INFO - 🔍 [VECTOR SEARCH] Encontrados 15 resultados
+2026-02-03 13:28:09 - tools.db_vector_search - INFO - ⚡ [RERANK] Reordenando 15 resultados com FlashRank...
+2026-02-03 13:28:09 - tools.db_vector_search - INFO - ✅ [RERANK] Reordenação concluída. Top 1 antigo score: 0.988 -> Novo: 0.991
+2026-02-03 13:28:09 - tools.db_vector_search - INFO - 📏 [GENERIC BOOST] Aplicando reordenação para: 'ruffles batata pequena'
+2026-02-03 13:28:09 - tools.db_vector_search - INFO -    🏆 Top 1 Generic: BATATA BRANCA kg setor HORTI-FRUTI categoria LEGUMES E VERDURAS subcategoria
+2026-02-03 13:28:09 - tools.db_vector_search - INFO -    🏆 Top 2 Generic: BATATA PALITO RAPMIX 2KG setor CONGELADOS categoria BATATA FRITA CONG subcategoria
+2026-02-03 13:28:09 - tools.db_vector_search - INFO -    🏆 Top 3 Generic: BATATA PRE FRITA MAIS BATATA 400G setor CONGELADOS categoria BATATA FRITA CONG subcategoria
+2026-02-03 13:28:10 - tools.db_vector_search - INFO - 🔍 [VECTOR SEARCH] Encontrados 15 resultados
+2026-02-03 13:28:10 - tools.db_vector_search - INFO - ⚡ [RERANK] Reordenando 15 resultados com FlashRank...
+2026-02-03 13:28:10 - tools.db_vector_search - INFO - ✅ [RERANK] Reordenação concluída. Top 1 antigo score: 0.999 -> Novo: 0.999
+2026-02-03 13:28:10 - tools.http_tools - INFO - Consultando estoque_preco por EAN: http://45.178.95.233:5001/api/Produto/GetProdutosEAN/7892840822514
+2026-02-03 13:28:10 - tools.http_tools - INFO - Consultando estoque_preco por EAN: http://45.178.95.233:5001/api/Produto/GetProdutosEAN/7892840824228
+2026-02-03 13:28:10 - tools.vector_search_subagent - INFO - 🧩 [SUB-SUB-AGENT][VETORIAL] Buscando (DIRECT): 'ruffles churrasco' (limit=15)
+2026-02-03 13:28:10 - tools.db_vector_search - INFO - 🔍 [VECTOR SEARCH] Buscando: 'ruffles churrasco'
+2026-02-03 13:28:10 - tools.http_tools - INFO - Consultando estoque_preco por EAN: http://45.178.95.233:5001/api/Produto/GetProdutosEAN/227
+2026-02-03 13:28:10 - tools.http_tools - INFO - EAN 7892840822514: 1 item(s) disponíveis após filtragem
+2026-02-03 13:28:10 - tools.http_tools - INFO - EAN 7892840824228: 1 item(s) disponíveis após filtragem
+2026-02-03 13:28:10 - tools.http_tools - INFO - EAN 227: 1 item(s) disponíveis após filtragem
+2026-02-03 13:28:11 - tools.db_vector_search - INFO - 🔀 [HYBRID SEARCH] Query: 'ruffles churrasco' → 'ruffles churrasco'
+2026-02-03 13:28:11 - tools.db_vector_search - INFO - 🔍 [VECTOR SEARCH] Encontrados 15 resultados
+2026-02-03 13:28:11 - tools.db_vector_search - INFO - ⚡ [RERANK] Reordenando 15 resultados com FlashRank...
+2026-02-03 13:28:11 - tools.db_vector_search - INFO - ✅ [RERANK] Reordenação concluída. Top 1 antigo score: 0.999 -> Novo: 0.999
+2026-02-03 13:28:12 - tools.redis_tools - INFO - 💡 9 sugestões salvas (Merge: 0 + 9) para 558587520060
+2026-02-03 13:28:12 - tools.search_agent - INFO - 💾 [SUB-AGENT] Cache salvo: 9 produtos para 558587520060
+2026-02-03 13:28:19 - tools.search_agent - INFO - 🕵️ [SUB-AGENT] Modo de busca: individual | termos: ['batata rufles vermelho pequena']
+2026-02-03 13:28:20 - tools.vector_search_subagent - INFO - 🧩 [SUB-SUB-AGENT][VETORIAL] Buscando (DIRECT): 'batata rufles vermelho pequena' (limit=15)
+2026-02-03 13:28:20 - tools.db_vector_search - INFO - 🎯 [BOOST] Query melhorada: 'batata rufles vermelho pequena hortifruti legumes verduras frutas'
+2026-02-03 13:28:20 - tools.db_vector_search - INFO - 🔍 [VECTOR SEARCH] Buscando: 'batata rufles vermelho pequena' → 'batata rufles vermelho pequena hortifruti legumes verduras frutas'
+2026-02-03 13:28:20 - tools.db_vector_search - INFO - 🔀 [HYBRID SEARCH] Query: 'batata rufles vermelho pequena' → 'batata rufles vermelho pequena hortifruti legumes verduras frutas'
+2026-02-03 13:28:21 - tools.db_vector_search - INFO - 🔍 [VECTOR SEARCH] Encontrados 15 resultados
+2026-02-03 13:28:21 - tools.db_vector_search - INFO - ⚡ [RERANK] Reordenando 15 resultados com FlashRank...
+2026-02-03 13:28:21 - tools.db_vector_search - INFO - ✅ [RERANK] Reordenação concluída. Top 1 antigo score: 0.035 -> Novo: 0.038
+2026-02-03 13:28:21 - tools.db_vector_search - INFO - 📏 [GENERIC BOOST] Aplicando reordenação para: 'batata rufles vermelho pequena'
+2026-02-03 13:28:21 - tools.db_vector_search - INFO -    🏆 Top 1 Generic: BATATA BRANCA kg setor HORTI-FRUTI categoria LEGUMES E VERDURAS subcategoria
+2026-02-03 13:28:21 - tools.db_vector_search - INFO -    🏆 Top 2 Generic: BATATA INGLESA  kg setor HORTI-FRUTI categoria LEGUMES E VERDURAS subcategoria
+2026-02-03 13:28:21 - tools.db_vector_search - INFO -    🏆 Top 3 Generic: RUCULA EFRAIM setor HORTI-FRUTI categoria FOLHAGENS subcategoria
+2026-02-03 13:28:23 - tools.vector_search_subagent - INFO - 🧩 [SUB-SUB-AGENT][VETORIAL] Buscando (DIRECT): 'batata frita pacote pequeno' (limit=15)
+2026-02-03 13:28:23 - tools.db_vector_search - INFO - 🎯 [BOOST] Query melhorada: 'batata frita pacote pequeno hortifruti legumes verduras frutas'
+2026-02-03 13:28:23 - tools.db_vector_search - INFO - 🔍 [VECTOR SEARCH] Buscando: 'batata frita pacote pequeno' → 'batata frita pacote pequeno hortifruti legumes verduras frutas'
+2026-02-03 13:28:23 - tools.vector_search_subagent - INFO - 🧩 [SUB-SUB-AGENT][VETORIAL] Buscando (DIRECT): 'rufles' (limit=15)
+2026-02-03 13:28:23 - tools.db_vector_search - INFO - 🔍 [VECTOR SEARCH] Buscando: 'rufles'
+2026-02-03 13:28:23 - tools.vector_search_subagent - INFO - 🧩 [SUB-SUB-AGENT][VETORIAL] Buscando (DIRECT): 'rufles batata vermelha' (limit=15)
+2026-02-03 13:28:23 - tools.db_vector_search - INFO - 🎯 [BOOST] Query melhorada: 'rufles batata vermelha hortifruti legumes verduras frutas'
+2026-02-03 13:28:23 - tools.db_vector_search - INFO - 🔍 [VECTOR SEARCH] Buscando: 'rufles batata vermelha' → 'rufles batata vermelha hortifruti legumes verduras frutas'
+2026-02-03 13:28:23 - tools.vector_search_subagent - INFO - 🧩 [SUB-SUB-AGENT][VETORIAL] Buscando (DIRECT): 'ruffles batata pequena' (limit=15)
+2026-02-03 13:28:23 - tools.db_vector_search - INFO - 🎯 [BOOST] Query melhorada: 'ruffles batata pequena hortifruti legumes verduras frutas'
+2026-02-03 13:28:23 - tools.db_vector_search - INFO - 🔍 [VECTOR SEARCH] Buscando: 'ruffles batata pequena' → 'ruffles batata pequena hortifruti legumes verduras frutas'
+2026-02-03 13:28:23 - tools.db_vector_search - INFO - 🔀 [HYBRID SEARCH] Query: 'rufles' → 'rufles'
+2026-02-03 13:28:24 - tools.db_vector_search - INFO - 🔀 [HYBRID SEARCH] Query: 'batata frita pacote pequeno' → 'batata frita pacote pequeno hortifruti legumes verduras frutas'
+2026-02-03 13:28:24 - tools.db_vector_search - INFO - 🔀 [HYBRID SEARCH] Query: 'rufles batata vermelha' → 'rufles batata vermelha hortifruti legumes verduras frutas'
+2026-02-03 13:28:24 - tools.db_vector_search - INFO - 🔀 [HYBRID SEARCH] Query: 'ruffles batata pequena' → 'ruffles batata pequena hortifruti legumes verduras frutas'
+2026-02-03 13:28:24 - tools.db_vector_search - INFO - 🔍 [VECTOR SEARCH] Encontrados 15 resultados
+2026-02-03 13:28:24 - tools.db_vector_search - INFO - ⚡ [RERANK] Reordenando 15 resultados com FlashRank...
+2026-02-03 13:28:24 - tools.db_vector_search - INFO - ✅ [RERANK] Reordenação concluída. Top 1 antigo score: 0.037 -> Novo: 0.037
+2026-02-03 13:28:24 - tools.db_vector_search - INFO - 📏 [GENERIC BOOST] Aplicando reordenação para: 'rufles'
+2026-02-03 13:28:24 - tools.db_vector_search - INFO -    🏆 Top 1 Generic: RUCULA EFRAIM setor HORTI-FRUTI categoria FOLHAGENS subcategoria
+2026-02-03 13:28:24 - tools.db_vector_search - INFO -    🏆 Top 2 Generic: RATICIDA KLERAT GRANUL 25G (1X40) setor LIMPEZA categoria PESTICIDAS subcategoria RATICIDA
+2026-02-03 13:28:24 - tools.db_vector_search - INFO -    🏆 Top 3 Generic: RATICIDA KLERAT GRANUL 25G (1X40) setor LIMPEZA categoria PESTICIDAS subcategoria RATICIDA
+2026-02-03 13:28:24 - tools.db_vector_search - INFO - 🔍 [VECTOR SEARCH] Encontrados 15 resultados
+2026-02-03 13:28:24 - tools.db_vector_search - INFO - ⚡ [RERANK] Reordenando 15 resultados com FlashRank...
+2026-02-03 13:28:24 - tools.db_vector_search - INFO - 🔍 [VECTOR SEARCH] Encontrados 15 resultados
+2026-02-03 13:28:24 - tools.db_vector_search - INFO - ⚡ [RERANK] Reordenando 15 resultados com FlashRank...
+2026-02-03 13:28:24 - tools.db_vector_search - INFO - ✅ [RERANK] Reordenação concluída. Top 1 antigo score: 0.007 -> Novo: 0.010
+2026-02-03 13:28:24 - tools.db_vector_search - INFO - 📏 [GENERIC BOOST] Aplicando reordenação para: 'rufles batata vermelha'
+2026-02-03 13:28:24 - tools.db_vector_search - INFO -    🏆 Top 1 Generic: BATATA BRANCA kg setor HORTI-FRUTI categoria LEGUMES E VERDURAS subcategoria
+2026-02-03 13:28:24 - tools.db_vector_search - INFO -    🏆 Top 2 Generic: RUCULA EFRAIM setor HORTI-FRUTI categoria FOLHAGENS subcategoria
+2026-02-03 13:28:24 - tools.db_vector_search - INFO -    🏆 Top 3 Generic: SALADA DE FRUTAS QUEIROZ setor HORTI-FRUTI categoria FRUTAS subcategoria
+2026-02-03 13:28:24 - tools.db_vector_search - INFO - ✅ [RERANK] Reordenação concluída. Top 1 antigo score: 0.730 -> Novo: 0.837
+2026-02-03 13:28:24 - tools.db_vector_search - INFO - 📏 [GENERIC BOOST] Aplicando reordenação para: 'batata frita pacote pequeno'
+2026-02-03 13:28:24 - tools.db_vector_search - INFO -    🏆 Top 1 Generic: BATATA BRANCA kg setor HORTI-FRUTI categoria LEGUMES E VERDURAS subcategoria
+2026-02-03 13:28:24 - tools.db_vector_search - INFO -    🏆 Top 2 Generic: BATATA PALITO RAPMIX 2KG setor CONGELADOS categoria BATATA FRITA CONG subcategoria
+2026-02-03 13:28:24 - tools.db_vector_search - INFO -    🏆 Top 3 Generic: BATATA PALITO RAPMIX 2KG setor CONGELADOS categoria BATATA FRITA CONG subcategoria
+2026-02-03 13:28:25 - tools.db_vector_search - INFO - 🔍 [VECTOR SEARCH] Encontrados 15 resultados
+2026-02-03 13:28:25 - tools.db_vector_search - INFO - ⚡ [RERANK] Reordenando 15 resultados com FlashRank...
+2026-02-03 13:28:25 - tools.db_vector_search - INFO - ✅ [RERANK] Reordenação concluída. Top 1 antigo score: 0.988 -> Novo: 0.991
+2026-02-03 13:28:25 - tools.db_vector_search - INFO - 📏 [GENERIC BOOST] Aplicando reordenação para: 'ruffles batata pequena'
+2026-02-03 13:28:25 - tools.db_vector_search - INFO -    🏆 Top 1 Generic: BATATA BRANCA kg setor HORTI-FRUTI categoria LEGUMES E VERDURAS subcategoria
+2026-02-03 13:28:25 - tools.db_vector_search - INFO -    🏆 Top 2 Generic: BATATA PALITO RAPMIX 2KG setor CONGELADOS categoria BATATA FRITA CONG subcategoria
+2026-02-03 13:28:25 - tools.db_vector_search - INFO -    🏆 Top 3 Generic: BATATA PRE FRITA MAIS BATATA 400G setor CONGELADOS categoria BATATA FRITA CONG subcategoria
+2026-02-03 13:28:26 - tools.vector_search_subagent - INFO - 🧩 [SUB-SUB-AGENT][VETORIAL] Buscando (DIRECT): 'ruffles churrasco 32g' (limit=5)
+2026-02-03 13:28:26 - tools.db_vector_search - INFO - 🔍 [VECTOR SEARCH] Buscando: 'ruffles churrasco 32g'
+2026-02-03 13:28:26 - tools.db_vector_search - INFO - 🔀 [HYBRID SEARCH] Query: 'ruffles churrasco 32g' → 'ruffles churrasco 32g'
+2026-02-03 13:28:27 - tools.db_vector_search - INFO - 🔍 [VECTOR SEARCH] Encontrados 5 resultados
+2026-02-03 13:28:27 - tools.db_vector_search - INFO - ⚡ [RERANK] Reordenando 5 resultados com FlashRank...
+2026-02-03 13:28:27 - tools.db_vector_search - INFO - ✅ [RERANK] Reordenação concluída. Top 1 antigo score: 1.000 -> Novo: 1.000
+2026-02-03 13:28:30 - agent_multiagent - INFO - 👩‍💼 [VENDEDOR] Resposta: Olá! Sou a Ana, do Mercadinho Queiroz. Adicionei todos os itens do seu pedido:
+
+• Salgadinho Cheetos...
+2026-02-03 13:28:30 - agent_multiagent - INFO - ✅ [MULTI-AGENT] Resposta: Olá! Sou a Ana, do Mercadinho Queiroz. Adicionei todos os itens do seu pedido:
+
+• Salgadinho Cheetos 105g Lua - R$ 9.99  
+• Cookie Amori 40g Chocolate - R$ 1.99  
+• Wafer Animados Zoo 30g Chocolate - ...
+2026-02-03 13:28:31 - tools.whatsapp_api - INFO - 📤 Enviando mensagem para 558587520060@s.whatsapp.net: Olá! Sou a Ana, do Mercadinho Queiroz. Adicionei t...
+2026-02-03 13:28:32 - tools.whatsapp_api - INFO - ✅ Mensagem enviada com sucesso para 558587520060
+2026-02-03 13:28:33 - tools.whatsapp_api - INFO - 📤 Enviando mensagem para 558587520060@s.whatsapp.net: • Salgadinho Cheetos 105g Lua - R$ 9.99  
+• Cookie...
+2026-02-03 13:28:34 - tools.whatsapp_api - INFO - ✅ Mensagem enviada com sucesso para 558587520060
+2026-02-03 13:28:35 - tools.whatsapp_api - INFO - 📤 Enviando mensagem para 558587520060@s.whatsapp.net: *Não encontrei a Batata Ruffles vermelha pequena, ...
+2026-02-03 13:28:35 - tools.whatsapp_api - INFO - ✅ Mensagem enviada com sucesso para 558587520060
+2026-02-03 13:28:35 - __main__ - INFO - ✅ Mensagem processada com sucesso: 558587520060

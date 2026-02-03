@@ -1,0 +1,324 @@
+{"asctime": "2026-02-03 12:45:28", "name": "__main__", "levelname": "INFO", "message": "\ud83d\ude80 Iniciando ARQ Worker..."}
+{"asctime": "2026-02-03 12:45:28", "name": "__main__", "levelname": "INFO", "message": "\ud83d\udcca Configura\u00e7\u00e3o: max_jobs=15, max_tries=3"}
+{"asctime": "2026-02-03 12:45:28", "name": "server", "levelname": "INFO", "message": "\ud83d\ude80 Inicializando ARQ Pool..."}
+{"asctime": "2026-02-03 12:45:33", "name": "server", "levelname": "INFO", "message": "\u2705 ARQ Pool inicializado com sucesso"}
+{"asctime": "2026-02-03 13:27:32", "name": "server", "levelname": "INFO", "message": "\ud83d\udce5 RAW: message | Keys: ['event', 'instanceId', 'timestamp', 'data'] | DataKeys: ['instanceId', 'id', 'from', 'to', 'body', 'type', 'timestamp', 'fromMe', 'isGroup', 'pushName']"}
+{"asctime": "2026-02-03 13:27:32", "name": "server", "levelname": "INFO", "message": "\ud83d\udd0d DEBUG EXTRACT START: Keys=['event', 'instanceId', 'timestamp', 'data']"}
+{"asctime": "2026-02-03 13:27:32", "name": "server", "levelname": "INFO", "message": "\ud83d\udd0d DEBUG EXTRACT UNWRAPPED: Keys=['instanceId', 'id', 'from', 'to', 'body', 'type', 'timestamp', 'fromMe', 'isGroup', 'pushName'] | From=558587520060:3@s.whatsapp.net | Body=2 batata rufles vermelho pequena \n1 Cheetos azul\n1 fandagos \n1 cookies \n1 animado zoom Wafer de chocolate \n1 refrigerante Pepsi de 2 litros\n1 cenoura \n1 batata inglesa \n1 cebola \n1 piment\u00e3o \n2 pimentinha de cheiro"}
+{"asctime": "2026-02-03 13:27:32", "name": "server", "levelname": "INFO", "message": "In: 558587520060 | text | 2 batata rufles vermelho pequena \n1 Cheetos azul\n1"}
+{"asctime": "2026-02-03 13:27:32", "name": "tools.redis_tools", "levelname": "INFO", "message": "Conectado ao Redis: projeto_queiroz_redis_agente:6379"}
+{"asctime": "2026-02-03 13:27:32", "name": "tools.redis_tools", "levelname": "INFO", "message": "Mensagem empilhada no buffer: msgbuf:558587520060"}
+{"asctime": "2026-02-03 13:27:47", "name": "tools.redis_tools", "levelname": "INFO", "message": "Buffer consumido para 558587520060: 1 mensagens. MIDs: 1"}
+{"asctime": "2026-02-03 13:27:47", "name": "tools.redis_tools", "levelname": "INFO", "message": "\ud83d\udce6 Nova sess\u00e3o de pedido iniciada para 558587520060 (TTL: 30min)"}
+{"asctime": "2026-02-03 13:27:47", "name": "server", "levelname": "INFO", "message": "\ud83c\udf89 Job enfileirado: 8b8c5ac17fa94456aba648ffcc67186a | Cliente: 558587520060"}
+{"asctime": "2026-02-03 13:27:50", "name": "__main__", "levelname": "INFO", "message": "\ud83d\udc40 Marcando chat 558587520060 como lido... (MIDs: 1)"}
+{"asctime": "2026-02-03 13:27:50", "name": "tools.whatsapp_api", "levelname": "INFO", "message": "\ud83d\udc40 mark_as_read: {'chatId': '558587520060', 'messageId': '3B4F64FCFD83F5F03DD7'}"}
+{"asctime": "2026-02-03 13:27:50", "name": "tools.whatsapp_api", "levelname": "INFO", "message": "\u2705 Chat 558587520060 marcado como lido"}
+{"asctime": "2026-02-03 13:27:51", "name": "agent_multiagent", "levelname": "INFO", "message": "[MULTI-AGENT] Telefone: 558587520060 | Msg: [SESS\u00c3O] Nova conversa. Monte o pedido normalmente..."}
+{"asctime": "2026-02-03 13:27:52", "name": "tools.time_tool", "levelname": "INFO", "message": "Hora atual consultada: \ud83d\udcc5 Ter\u00e7a-feira, 03/02/2026 \u00e0s 10:27:52 (-03)"}
+{"asctime": "2026-02-03 13:27:52", "name": "agent_multiagent", "levelname": "INFO", "message": "\ud83d\udce8 Enviando 1 mensagens para o grafo"}
+{"asctime": "2026-02-03 13:27:52", "name": "agent_multiagent", "levelname": "INFO", "message": "\ud83e\udde0 [ORCHESTRATOR] Analisando inten\u00e7\u00e3o..."}
+{"asctime": "2026-02-03 13:27:52", "name": "agent_multiagent", "levelname": "INFO", "message": "\ud83d\udcc4 Carregando prompt: /app/prompts/orchestrator.md"}
+{"asctime": "2026-02-03 13:27:53", "name": "agent_multiagent", "levelname": "INFO", "message": "\ud83e\udde0 [ORCHESTRATOR] Inten\u00e7\u00e3o detectada: vendas (raw: 'vendas')"}
+{"asctime": "2026-02-03 13:27:53", "name": "agent_multiagent", "levelname": "INFO", "message": "\ud83d\udc69\u200d\ud83d\udcbc [VENDEDOR] Processando..."}
+{"asctime": "2026-02-03 13:27:53", "name": "agent_multiagent", "levelname": "INFO", "message": "\ud83d\udcc4 Carregando prompt: /app/prompts/vendedor.md"}
+{"asctime": "2026-02-03 13:27:55", "name": "tools.search_agent", "levelname": "INFO", "message": "\ud83d\udd75\ufe0f [SUB-AGENT] Modo de busca: lote | termos: ['batata rufles vermelho pequena', 'Cheetos azul', 'fandagos', 'cookies', 'animado zoom Wafer de chocolate', 'refrigerante Pepsi 2 litros', 'cenoura', 'batata inglesa', 'cebola', 'piment\u00e3o', 'pimentinha de cheiro']"}
+{"asctime": "2026-02-03 13:27:56", "name": "tools.vector_search_subagent", "levelname": "INFO", "message": "\ud83e\udde9 [SUB-SUB-AGENT][VETORIAL] Buscando (DIRECT): 'fandangos' (limit=15)"}
+{"asctime": "2026-02-03 13:27:56", "name": "tools.db_vector_search", "levelname": "INFO", "message": "\ud83d\udd0d [VECTOR SEARCH] Buscando: 'fandangos'"}
+{"asctime": "2026-02-03 13:27:56", "name": "tools.vector_search_subagent", "levelname": "INFO", "message": "\ud83e\udde9 [SUB-SUB-AGENT][VETORIAL] Buscando (DIRECT): 'cenoura' (limit=15)"}
+{"asctime": "2026-02-03 13:27:56", "name": "tools.db_vector_search", "levelname": "INFO", "message": "\ud83c\udfaf [BOOST] Query melhorada: 'cenoura hortifruti legumes verduras frutas'"}
+{"asctime": "2026-02-03 13:27:56", "name": "tools.db_vector_search", "levelname": "INFO", "message": "\ud83d\udd0d [VECTOR SEARCH] Buscando: 'cenoura' \u2192 'cenoura hortifruti legumes verduras frutas'"}
+{"asctime": "2026-02-03 13:27:56", "name": "tools.vector_search_subagent", "levelname": "INFO", "message": "\ud83e\udde9 [SUB-SUB-AGENT][VETORIAL] Buscando (DIRECT): 'batata inglesa' (limit=15)"}
+{"asctime": "2026-02-03 13:27:56", "name": "tools.db_vector_search", "levelname": "INFO", "message": "\ud83c\udfaf [BOOST] Query melhorada: 'batata inglesa hortifruti legumes verduras frutas'"}
+{"asctime": "2026-02-03 13:27:56", "name": "tools.db_vector_search", "levelname": "INFO", "message": "\ud83d\udd0d [VECTOR SEARCH] Buscando: 'batata inglesa' \u2192 'batata inglesa hortifruti legumes verduras frutas'"}
+{"asctime": "2026-02-03 13:27:57", "name": "tools.db_vector_search", "levelname": "INFO", "message": "\ud83d\udd00 [HYBRID SEARCH] Query: 'cenoura' \u2192 'cenoura hortifruti legumes verduras frutas'"}
+{"asctime": "2026-02-03 13:27:57", "name": "tools.db_vector_search", "levelname": "INFO", "message": "\ud83d\udd00 [HYBRID SEARCH] Query: 'fandangos' \u2192 'fandangos'"}
+{"asctime": "2026-02-03 13:27:57", "name": "tools.vector_search_subagent", "levelname": "INFO", "message": "\ud83e\udde9 [SUB-SUB-AGENT][VETORIAL] Buscando (DIRECT): 'Cheetos azul' (limit=15)"}
+{"asctime": "2026-02-03 13:27:57", "name": "tools.db_vector_search", "levelname": "INFO", "message": "\ud83d\udd0d [VECTOR SEARCH] Buscando: 'Cheetos azul'"}
+{"asctime": "2026-02-03 13:27:57", "name": "tools.vector_search_subagent", "levelname": "INFO", "message": "\ud83e\udde9 [SUB-SUB-AGENT][VETORIAL] Buscando (DIRECT): 'cookies' (limit=15)"}
+{"asctime": "2026-02-03 13:27:57", "name": "tools.db_vector_search", "levelname": "INFO", "message": "\ud83d\udd0d [VECTOR SEARCH] Buscando: 'cookies'"}
+{"asctime": "2026-02-03 13:27:57", "name": "tools.db_vector_search", "levelname": "INFO", "message": "\ud83d\udd00 [HYBRID SEARCH] Query: 'batata inglesa' \u2192 'batata inglesa hortifruti legumes verduras frutas'"}
+{"asctime": "2026-02-03 13:27:57", "name": "tools.db_vector_search", "levelname": "INFO", "message": "\ud83d\udd00 [HYBRID SEARCH] Query: 'Cheetos azul' \u2192 'Cheetos azul'"}
+{"asctime": "2026-02-03 13:27:57", "name": "tools.db_vector_search", "levelname": "INFO", "message": "\ud83d\udd00 [HYBRID SEARCH] Query: 'cookies' \u2192 'cookies'"}
+{"asctime": "2026-02-03 13:27:57", "name": "tools.vector_search_subagent", "levelname": "INFO", "message": "\ud83e\udde9 [SUB-SUB-AGENT][VETORIAL] Buscando (DIRECT): 'refrigerante Pepsi 2 litros' (limit=15)"}
+{"asctime": "2026-02-03 13:27:57", "name": "tools.db_vector_search", "levelname": "INFO", "message": "\ud83d\udd04 [TRADU\u00c7\u00c3O PARCIAL] 'refrigerante' \u2192 'refrig' | Result: 'refrig pepsi 2 litros'"}
+{"asctime": "2026-02-03 13:27:57", "name": "tools.db_vector_search", "levelname": "INFO", "message": "\ud83d\udd0d [VECTOR SEARCH] Buscando: 'refrig pepsi 2 litros'"}
+{"asctime": "2026-02-03 13:27:57", "name": "tools.vector_search_subagent", "levelname": "INFO", "message": "\ud83e\udde9 [SUB-SUB-AGENT][VETORIAL] Buscando (DIRECT): 'batata rufles vermelho pequena' (limit=15)"}
+{"asctime": "2026-02-03 13:27:57", "name": "tools.db_vector_search", "levelname": "INFO", "message": "\ud83c\udfaf [BOOST] Query melhorada: 'batata rufles vermelho pequena hortifruti legumes verduras frutas'"}
+{"asctime": "2026-02-03 13:27:57", "name": "tools.db_vector_search", "levelname": "INFO", "message": "\ud83d\udd0d [VECTOR SEARCH] Buscando: 'batata rufles vermelho pequena' \u2192 'batata rufles vermelho pequena hortifruti legumes verduras frutas'"}
+{"asctime": "2026-02-03 13:27:57", "name": "tools.vector_search_subagent", "levelname": "INFO", "message": "\ud83e\udde9 [SUB-SUB-AGENT][VETORIAL] Buscando (DIRECT): 'piment\u00e3o' (limit=15)"}
+{"asctime": "2026-02-03 13:27:57", "name": "tools.db_vector_search", "levelname": "INFO", "message": "\ud83c\udfaf [BOOST] Query melhorada: 'pimentao hortifruti legumes verduras frutas'"}
+{"asctime": "2026-02-03 13:27:57", "name": "tools.db_vector_search", "levelname": "INFO", "message": "\ud83d\udd0d [VECTOR SEARCH] Buscando: 'pimentao' \u2192 'pimentao hortifruti legumes verduras frutas'"}
+{"asctime": "2026-02-03 13:27:58", "name": "tools.db_vector_search", "levelname": "INFO", "message": "\ud83d\udd00 [HYBRID SEARCH] Query: 'refrig pepsi 2 litros' \u2192 'refrig pepsi 2 litros'"}
+{"asctime": "2026-02-03 13:27:58", "name": "tools.vector_search_subagent", "levelname": "INFO", "message": "\ud83e\udde9 [SUB-SUB-AGENT][VETORIAL] Buscando (DIRECT): 'Wafer de chocolate' (limit=15)"}
+{"asctime": "2026-02-03 13:27:58", "name": "tools.db_vector_search", "levelname": "INFO", "message": "\ud83d\udd0d [VECTOR SEARCH] Buscando: 'Wafer de chocolate'"}
+{"asctime": "2026-02-03 13:27:58", "name": "tools.vector_search_subagent", "levelname": "INFO", "message": "\ud83e\udde9 [SUB-SUB-AGENT][VETORIAL] Buscando (DIRECT): 'animado zoom Wafer de chocolate' (limit=15)"}
+{"asctime": "2026-02-03 13:27:58", "name": "tools.db_vector_search", "levelname": "INFO", "message": "\ud83d\udd0d [VECTOR SEARCH] Buscando: 'animado zoom Wafer de chocolate'"}
+{"asctime": "2026-02-03 13:27:58", "name": "tools.vector_search_subagent", "levelname": "INFO", "message": "\ud83e\udde9 [SUB-SUB-AGENT][VETORIAL] Buscando (DIRECT): 'wafer chocolate' (limit=15)"}
+{"asctime": "2026-02-03 13:27:58", "name": "tools.db_vector_search", "levelname": "INFO", "message": "\ud83d\udd0d [VECTOR SEARCH] Buscando: 'wafer chocolate'"}
+{"asctime": "2026-02-03 13:27:58", "name": "tools.vector_search_subagent", "levelname": "INFO", "message": "\ud83e\udde9 [SUB-SUB-AGENT][VETORIAL] Buscando (DIRECT): 'cebola' (limit=15)"}
+{"asctime": "2026-02-03 13:27:58", "name": "tools.db_vector_search", "levelname": "INFO", "message": "\ud83c\udfaf [BOOST] Query melhorada: 'cebola hortifruti legumes verduras frutas'"}
+{"asctime": "2026-02-03 13:27:58", "name": "tools.db_vector_search", "levelname": "INFO", "message": "\ud83d\udd0d [VECTOR SEARCH] Buscando: 'cebola' \u2192 'cebola hortifruti legumes verduras frutas'"}
+{"asctime": "2026-02-03 13:27:58", "name": "tools.db_vector_search", "levelname": "INFO", "message": "\ud83d\udd00 [HYBRID SEARCH] Query: 'Wafer de chocolate' \u2192 'Wafer de chocolate'"}
+{"asctime": "2026-02-03 13:27:59", "name": "tools.db_vector_search", "levelname": "INFO", "message": "\ud83d\udd00 [HYBRID SEARCH] Query: 'animado zoom Wafer de chocolate' \u2192 'animado zoom Wafer de chocolate'"}
+{"asctime": "2026-02-03 13:27:59", "name": "tools.db_vector_search", "levelname": "INFO", "message": "\ud83d\udd00 [HYBRID SEARCH] Query: 'wafer chocolate' \u2192 'wafer chocolate'"}
+{"asctime": "2026-02-03 13:27:59", "name": "tools.db_vector_search", "levelname": "INFO", "message": "\ud83d\udd00 [HYBRID SEARCH] Query: 'batata rufles vermelho pequena' \u2192 'batata rufles vermelho pequena hortifruti legumes verduras frutas'"}
+{"asctime": "2026-02-03 13:27:59", "name": "tools.db_vector_search", "levelname": "INFO", "message": "\ud83d\udd00 [HYBRID SEARCH] Query: 'pimentao' \u2192 'pimentao hortifruti legumes verduras frutas'"}
+{"asctime": "2026-02-03 13:27:59", "name": "tools.db_vector_search", "levelname": "INFO", "message": "\ud83d\udd00 [HYBRID SEARCH] Query: 'cebola' \u2192 'cebola hortifruti legumes verduras frutas'"}
+{"asctime": "2026-02-03 13:28:04", "name": "tools.db_vector_search", "levelname": "INFO", "message": "\ud83d\udd0d [VECTOR SEARCH] Encontrados 15 resultados"}
+{"asctime": "2026-02-03 13:28:04", "name": "tools.db_vector_search", "levelname": "INFO", "message": "\u26a1 [RERANK] Reordenando 14 resultados com FlashRank..."}
+{"asctime": "2026-02-03 13:28:04", "name": "tools.db_vector_search", "levelname": "INFO", "message": "\ud83d\udd0d [VECTOR SEARCH] Encontrados 15 resultados"}
+{"asctime": "2026-02-03 13:28:04", "name": "tools.db_vector_search", "levelname": "INFO", "message": "\u26a1 [RERANK] Reordenando 15 resultados com FlashRank..."}
+{"asctime": "2026-02-03 13:28:05", "name": "tools.db_vector_search", "levelname": "INFO", "message": "\ud83d\udd0d [VECTOR SEARCH] Encontrados 15 resultados"}
+{"asctime": "2026-02-03 13:28:05", "name": "tools.db_vector_search", "levelname": "INFO", "message": "\ud83d\udd0d [VECTOR SEARCH] Encontrados 15 resultados"}
+{"asctime": "2026-02-03 13:28:05", "name": "tools.db_vector_search", "levelname": "INFO", "message": "\ud83d\udd0d [VECTOR SEARCH] Encontrados 15 resultados"}
+{"asctime": "2026-02-03 13:28:05", "name": "tools.db_vector_search", "levelname": "INFO", "message": "\ud83d\udd0d [VECTOR SEARCH] Encontrados 15 resultados"}
+{"asctime": "2026-02-03 13:28:05", "name": "tools.db_vector_search", "levelname": "INFO", "message": "\ud83d\udd0d [VECTOR SEARCH] Encontrados 15 resultados"}
+{"asctime": "2026-02-03 13:28:05", "name": "tools.db_vector_search", "levelname": "INFO", "message": "\u26a1 [RERANK] Reordenando 15 resultados com FlashRank..."}
+{"asctime": "2026-02-03 13:28:05", "name": "tools.db_vector_search", "levelname": "INFO", "message": "\ud83d\udd0d [VECTOR SEARCH] Encontrados 15 resultados"}
+{"asctime": "2026-02-03 13:28:05", "name": "tools.db_vector_search", "levelname": "INFO", "message": "\u26a1 [RERANK] Reordenando 15 resultados com FlashRank..."}
+{"asctime": "2026-02-03 13:28:05", "name": "tools.db_vector_search", "levelname": "INFO", "message": "\ud83d\udd0d [VECTOR SEARCH] Encontrados 15 resultados"}
+{"asctime": "2026-02-03 13:28:05", "name": "tools.db_vector_search", "levelname": "INFO", "message": "\ud83d\udd0d [VECTOR SEARCH] Encontrados 15 resultados"}
+{"asctime": "2026-02-03 13:28:05", "name": "tools.db_vector_search", "levelname": "INFO", "message": "\ud83d\udd0d [VECTOR SEARCH] Encontrados 15 resultados"}
+{"asctime": "2026-02-03 13:28:05", "name": "tools.db_vector_search", "levelname": "INFO", "message": "\u26a1 [RERANK] Reordenando 15 resultados com FlashRank..."}
+{"asctime": "2026-02-03 13:28:05", "name": "tools.db_vector_search", "levelname": "INFO", "message": "\u26a1 [RERANK] Reordenando 15 resultados com FlashRank..."}
+{"asctime": "2026-02-03 13:28:05", "name": "tools.db_vector_search", "levelname": "INFO", "message": "\u26a1 [RERANK] Reordenando 15 resultados com FlashRank..."}
+{"asctime": "2026-02-03 13:28:05", "name": "tools.db_vector_search", "levelname": "INFO", "message": "\ud83d\udd0d [VECTOR SEARCH] Encontrados 15 resultados"}
+{"asctime": "2026-02-03 13:28:05", "name": "tools.db_vector_search", "levelname": "INFO", "message": "\u26a1 [RERANK] Reordenando 15 resultados com FlashRank..."}
+{"asctime": "2026-02-03 13:28:05", "name": "tools.db_vector_search", "levelname": "INFO", "message": "\u26a1 [RERANK] Reordenando 15 resultados com FlashRank..."}
+{"asctime": "2026-02-03 13:28:05", "name": "tools.db_vector_search", "levelname": "INFO", "message": "\u26a1 [RERANK] Reordenando 15 resultados com FlashRank..."}
+{"asctime": "2026-02-03 13:28:05", "name": "tools.db_vector_search", "levelname": "INFO", "message": "\u26a1 [RERANK] Reordenando 15 resultados com FlashRank..."}
+{"asctime": "2026-02-03 13:28:05", "name": "tools.db_vector_search", "levelname": "INFO", "message": "\u26a1 [RERANK] Reordenando 15 resultados com FlashRank..."}
+{"asctime": "2026-02-03 13:28:05", "name": "tools.db_vector_search", "levelname": "INFO", "message": "\u2705 [RERANK] Reordena\u00e7\u00e3o conclu\u00edda. Top 1 antigo score: 0.995 -> Novo: 0.997"}
+{"asctime": "2026-02-03 13:28:05", "name": "tools.db_vector_search", "levelname": "INFO", "message": "\ud83d\udccf [GENERIC BOOST] Aplicando reordena\u00e7\u00e3o para: 'pimentao'"}
+{"asctime": "2026-02-03 13:28:05", "name": "tools.db_vector_search", "levelname": "INFO", "message": "   \ud83c\udfc6 Top 1 Generic: PITOMBA setor HORTI-FRUTI categoria FRUTAS subcategoria"}
+{"asctime": "2026-02-03 13:28:05", "name": "tools.db_vector_search", "levelname": "INFO", "message": "   \ud83c\udfc6 Top 2 Generic: PIMENTAO VERDE  kg setor HORTI-FRUTI categoria LEGUMES E VERDURAS subcategoria"}
+{"asctime": "2026-02-03 13:28:05", "name": "tools.db_vector_search", "levelname": "INFO", "message": "   \ud83c\udfc6 Top 3 Generic: PIMENTAO AMARELO kg setor HORTI-FRUTI categoria LEGUMES E VERDURAS subcategoria"}
+{"asctime": "2026-02-03 13:28:05", "name": "tools.db_vector_search", "levelname": "INFO", "message": "\u2705 [RERANK] Reordena\u00e7\u00e3o conclu\u00edda. Top 1 antigo score: 0.964 -> Novo: 0.964"}
+{"asctime": "2026-02-03 13:28:05", "name": "tools.db_vector_search", "levelname": "INFO", "message": "\ud83d\udccf [GENERIC BOOST] Aplicando reordena\u00e7\u00e3o para: 'cookies'"}
+{"asctime": "2026-02-03 13:28:05", "name": "tools.db_vector_search", "levelname": "INFO", "message": "   \ud83c\udfc6 Top 1 Generic: COOKIE AMORI 40G BAUNILHA setor BISCOITOS E BOLACHAS categoria COOKIE subcategoria"}
+{"asctime": "2026-02-03 13:28:05", "name": "tools.db_vector_search", "levelname": "INFO", "message": "   \ud83c\udfc6 Top 2 Generic: COOKIE AMORI 40G CHOCOLATE setor BISCOITOS E BOLACHAS categoria COOKIE subcategoria"}
+{"asctime": "2026-02-03 13:28:05", "name": "tools.db_vector_search", "levelname": "INFO", "message": "   \ud83c\udfc6 Top 3 Generic: BISC RICH ESCURETO COOKIE 80G setor BISCOITOS E BOLACHAS categoria COOKIE subcategoria"}
+{"asctime": "2026-02-03 13:28:05", "name": "tools.db_vector_search", "levelname": "INFO", "message": "\u2705 [RERANK] Reordena\u00e7\u00e3o conclu\u00edda. Top 1 antigo score: 0.999 -> Novo: 0.999"}
+{"asctime": "2026-02-03 13:28:05", "name": "tools.db_vector_search", "levelname": "INFO", "message": "\u2705 [RERANK] Reordena\u00e7\u00e3o conclu\u00edda. Top 1 antigo score: 0.999 -> Novo: 0.999"}
+{"asctime": "2026-02-03 13:28:05", "name": "tools.db_vector_search", "levelname": "INFO", "message": "\u2705 [RERANK] Reordena\u00e7\u00e3o conclu\u00edda. Top 1 antigo score: 0.035 -> Novo: 0.038"}
+{"asctime": "2026-02-03 13:28:05", "name": "tools.db_vector_search", "levelname": "INFO", "message": "\ud83d\udccf [GENERIC BOOST] Aplicando reordena\u00e7\u00e3o para: 'batata rufles vermelho pequena'"}
+{"asctime": "2026-02-03 13:28:05", "name": "tools.db_vector_search", "levelname": "INFO", "message": "   \ud83c\udfc6 Top 1 Generic: BATATA BRANCA kg setor HORTI-FRUTI categoria LEGUMES E VERDURAS subcategoria"}
+{"asctime": "2026-02-03 13:28:05", "name": "tools.db_vector_search", "levelname": "INFO", "message": "   \ud83c\udfc6 Top 2 Generic: BATATA INGLESA  kg setor HORTI-FRUTI categoria LEGUMES E VERDURAS subcategoria"}
+{"asctime": "2026-02-03 13:28:05", "name": "tools.db_vector_search", "levelname": "INFO", "message": "   \ud83c\udfc6 Top 3 Generic: RUCULA EFRAIM setor HORTI-FRUTI categoria FOLHAGENS subcategoria"}
+{"asctime": "2026-02-03 13:28:06", "name": "tools.db_vector_search", "levelname": "INFO", "message": "\u2705 [RERANK] Reordena\u00e7\u00e3o conclu\u00edda. Top 1 antigo score: 0.018 -> Novo: 0.021"}
+{"asctime": "2026-02-03 13:28:06", "name": "tools.db_vector_search", "levelname": "INFO", "message": "\u2705 [RERANK] Reordena\u00e7\u00e3o conclu\u00edda. Top 1 antigo score: 1.000 -> Novo: 1.000"}
+{"asctime": "2026-02-03 13:28:06", "name": "tools.db_vector_search", "levelname": "INFO", "message": "\u2705 [RERANK] Reordena\u00e7\u00e3o conclu\u00edda. Top 1 antigo score: 0.074 -> Novo: 0.916"}
+{"asctime": "2026-02-03 13:28:06", "name": "tools.db_vector_search", "levelname": "INFO", "message": "\ud83d\udccf [GENERIC BOOST] Aplicando reordena\u00e7\u00e3o para: 'cenoura'"}
+{"asctime": "2026-02-03 13:28:06", "name": "tools.db_vector_search", "levelname": "INFO", "message": "   \ud83c\udfc6 Top 1 Generic: CAJU BDJ setor HORTI-FRUTI categoria FRUTAS subcategoria"}
+{"asctime": "2026-02-03 13:28:06", "name": "tools.db_vector_search", "levelname": "INFO", "message": "   \ud83c\udfc6 Top 2 Generic: ACEROLA 500g setor HORTI-FRUTI categoria FRUTAS subcategoria"}
+{"asctime": "2026-02-03 13:28:06", "name": "tools.db_vector_search", "levelname": "INFO", "message": "   \ud83c\udfc6 Top 3 Generic: ACEROLA LESSA 500g setor HORTI-FRUTI categoria FRUTAS subcategoria"}
+{"asctime": "2026-02-03 13:28:06", "name": "tools.db_vector_search", "levelname": "INFO", "message": "\u2705 [RERANK] Reordena\u00e7\u00e3o conclu\u00edda. Top 1 antigo score: 0.994 -> Novo: 0.994"}
+{"asctime": "2026-02-03 13:28:06", "name": "tools.db_vector_search", "levelname": "INFO", "message": "\u2705 [RERANK] Reordena\u00e7\u00e3o conclu\u00edda. Top 1 antigo score: 0.998 -> Novo: 0.998"}
+{"asctime": "2026-02-03 13:28:06", "name": "tools.db_vector_search", "levelname": "INFO", "message": "\u2705 [RERANK] Reordena\u00e7\u00e3o conclu\u00edda. Top 1 antigo score: 0.979 -> Novo: 0.988"}
+{"asctime": "2026-02-03 13:28:06", "name": "tools.db_vector_search", "levelname": "INFO", "message": "\ud83d\udccf [GENERIC BOOST] Aplicando reordena\u00e7\u00e3o para: 'batata inglesa'"}
+{"asctime": "2026-02-03 13:28:06", "name": "tools.db_vector_search", "levelname": "INFO", "message": "   \ud83c\udfc6 Top 1 Generic: BATATA INGLESA  kg setor HORTI-FRUTI categoria LEGUMES E VERDURAS subcategoria"}
+{"asctime": "2026-02-03 13:28:06", "name": "tools.db_vector_search", "levelname": "INFO", "message": "\ud83d\udccf [GENERIC BOOST] Aplicando reordena\u00e7\u00e3o para: 'fandangos'"}
+{"asctime": "2026-02-03 13:28:06", "name": "tools.db_vector_search", "levelname": "INFO", "message": "\u2705 [RERANK] Reordena\u00e7\u00e3o conclu\u00edda. Top 1 antigo score: 0.923 -> Novo: 0.923"}
+{"asctime": "2026-02-03 13:28:06", "name": "tools.db_vector_search", "levelname": "INFO", "message": "   \ud83c\udfc6 Top 2 Generic: BATATA BRANCA kg setor HORTI-FRUTI categoria LEGUMES E VERDURAS subcategoria"}
+{"asctime": "2026-02-03 13:28:06", "name": "tools.db_vector_search", "levelname": "INFO", "message": "   \ud83c\udfc6 Top 3 Generic: BATATA PALITO AURORA 400G setor CONGELADOS categoria BATATA FRITA CONG subcategoria"}
+{"asctime": "2026-02-03 13:28:06", "name": "tools.db_vector_search", "levelname": "INFO", "message": "\ud83d\udccf [GENERIC BOOST] Aplicando reordena\u00e7\u00e3o para: 'cebola'"}
+{"asctime": "2026-02-03 13:28:06", "name": "tools.db_vector_search", "levelname": "INFO", "message": "   \ud83c\udfc6 Top 1 Generic: CEBOLA BRANCA  kg setor HORTI-FRUTI categoria LEGUMES E VERDURAS subcategoria"}
+{"asctime": "2026-02-03 13:28:06", "name": "tools.db_vector_search", "levelname": "INFO", "message": "   \ud83c\udfc6 Top 2 Generic: LICHIA bdj setor HORTI-FRUTI categoria FRUTAS subcategoria"}
+{"asctime": "2026-02-03 13:28:06", "name": "tools.db_vector_search", "levelname": "INFO", "message": "   \ud83c\udfc6 Top 3 Generic: ACEROLA 500g setor HORTI-FRUTI categoria FRUTAS subcategoria"}
+{"asctime": "2026-02-03 13:28:06", "name": "tools.db_vector_search", "levelname": "INFO", "message": "   \ud83c\udfc6 Top 1 Generic: SALG FANDANGOS 33g BACON setor BOMBONIERE categoria CHILITO BATATA CHIPS PIPOCA subcategoria SALGADINHO(CHILITO)"}
+{"asctime": "2026-02-03 13:28:06", "name": "tools.db_vector_search", "levelname": "INFO", "message": "   \ud83c\udfc6 Top 2 Generic: SALG FANDANGOS 45g BACON setor BOMBONIERE categoria CHILITO BATATA CHIPS PIPOCA subcategoria SALGADINHO(CHILITO)"}
+{"asctime": "2026-02-03 13:28:06", "name": "tools.db_vector_search", "levelname": "INFO", "message": "   \ud83c\udfc6 Top 3 Generic: SALG FANDANGOS 37g QUEIJO setor BOMBONIERE categoria CHILITO BATATA CHIPS PIPOCA subcategoria SALGADINHO(CHILITO)"}
+{"asctime": "2026-02-03 13:28:06", "name": "tools.redis_tools", "levelname": "INFO", "message": "Conectado ao Redis: projeto_queiroz_redis_agente:6379"}
+{"asctime": "2026-02-03 13:28:06", "name": "tools.http_tools", "levelname": "INFO", "message": "Consultando estoque_preco por EAN: http://45.178.95.233:5001/api/Produto/GetProdutosEAN/210"}
+{"asctime": "2026-02-03 13:28:06", "name": "tools.http_tools", "levelname": "INFO", "message": "Consultando estoque_preco por EAN: http://45.178.95.233:5001/api/Produto/GetProdutosEAN/7892840822057"}
+{"asctime": "2026-02-03 13:28:06", "name": "tools.http_tools", "levelname": "INFO", "message": "Consultando estoque_preco por EAN: http://45.178.95.233:5001/api/Produto/GetProdutosEAN/7892840800000"}
+{"asctime": "2026-02-03 13:28:06", "name": "tools.http_tools", "levelname": "INFO", "message": "Consultando estoque_preco por EAN: http://45.178.95.233:5001/api/Produto/GetProdutosEAN/7892840800246"}
+{"asctime": "2026-02-03 13:28:06", "name": "tools.http_tools", "levelname": "INFO", "message": "EAN 210: 1 item(s) dispon\u00edveis ap\u00f3s filtragem"}
+{"asctime": "2026-02-03 13:28:06", "name": "tools.http_tools", "levelname": "INFO", "message": "EAN 7892840822057: 0 item(s) dispon\u00edveis ap\u00f3s filtragem"}
+{"asctime": "2026-02-03 13:28:07", "name": "tools.http_tools", "levelname": "INFO", "message": "Consultando estoque_preco por EAN: http://45.178.95.233:5001/api/Produto/GetProdutosEAN/204"}
+{"asctime": "2026-02-03 13:28:07", "name": "tools.http_tools", "levelname": "INFO", "message": "Consultando estoque_preco por EAN: http://45.178.95.233:5001/api/Produto/GetProdutosEAN/228"}
+{"asctime": "2026-02-03 13:28:07", "name": "tools.http_tools", "levelname": "INFO", "message": "Consultando estoque_preco por EAN: http://45.178.95.233:5001/api/Produto/GetProdutosEAN/234"}
+{"asctime": "2026-02-03 13:28:07", "name": "tools.http_tools", "levelname": "INFO", "message": "Consultando estoque_preco por EAN: http://45.178.95.233:5001/api/Produto/GetProdutosEAN/235"}
+{"asctime": "2026-02-03 13:28:07", "name": "tools.http_tools", "levelname": "INFO", "message": "EAN 7892840800246: 1 item(s) dispon\u00edveis ap\u00f3s filtragem"}
+{"asctime": "2026-02-03 13:28:07", "name": "tools.http_tools", "levelname": "INFO", "message": "EAN 7892840800000: 1 item(s) dispon\u00edveis ap\u00f3s filtragem"}
+{"asctime": "2026-02-03 13:28:07", "name": "tools.http_tools", "levelname": "INFO", "message": "Consultando estoque_preco por EAN: http://45.178.95.233:5001/api/Produto/GetProdutosEAN/27891152340215"}
+{"asctime": "2026-02-03 13:28:07", "name": "tools.http_tools", "levelname": "INFO", "message": "Consultando estoque_preco por EAN: http://45.178.95.233:5001/api/Produto/GetProdutosEAN/7891152340211"}
+{"asctime": "2026-02-03 13:28:07", "name": "tools.http_tools", "levelname": "INFO", "message": "EAN 204: 1 item(s) dispon\u00edveis ap\u00f3s filtragem"}
+{"asctime": "2026-02-03 13:28:07", "name": "tools.http_tools", "levelname": "INFO", "message": "EAN 228: 1 item(s) dispon\u00edveis ap\u00f3s filtragem"}
+{"asctime": "2026-02-03 13:28:07", "name": "tools.http_tools", "levelname": "INFO", "message": "EAN 235: 1 item(s) dispon\u00edveis ap\u00f3s filtragem"}
+{"asctime": "2026-02-03 13:28:07", "name": "tools.http_tools", "levelname": "INFO", "message": "EAN 234: 1 item(s) dispon\u00edveis ap\u00f3s filtragem"}
+{"asctime": "2026-02-03 13:28:07", "name": "tools.http_tools", "levelname": "INFO", "message": "EAN 7891152340211: 1 item(s) dispon\u00edveis ap\u00f3s filtragem"}
+{"asctime": "2026-02-03 13:28:07", "name": "tools.http_tools", "levelname": "INFO", "message": "EAN 27891152340215: 1 item(s) dispon\u00edveis ap\u00f3s filtragem"}
+{"asctime": "2026-02-03 13:28:07", "name": "tools.vector_search_subagent", "levelname": "INFO", "message": "\ud83e\udde9 [SUB-SUB-AGENT][VETORIAL] Buscando (DIRECT): 'ruffles batata pequena' (limit=15)"}
+{"asctime": "2026-02-03 13:28:07", "name": "tools.db_vector_search", "levelname": "INFO", "message": "\ud83c\udfaf [BOOST] Query melhorada: 'ruffles batata pequena hortifruti legumes verduras frutas'"}
+{"asctime": "2026-02-03 13:28:07", "name": "tools.db_vector_search", "levelname": "INFO", "message": "\ud83d\udd0d [VECTOR SEARCH] Buscando: 'ruffles batata pequena' \u2192 'ruffles batata pequena hortifruti legumes verduras frutas'"}
+{"asctime": "2026-02-03 13:28:07", "name": "tools.vector_search_subagent", "levelname": "INFO", "message": "\ud83e\udde9 [SUB-SUB-AGENT][VETORIAL] Buscando (DIRECT): 'rufles batata vermelha' (limit=15)"}
+{"asctime": "2026-02-03 13:28:07", "name": "tools.db_vector_search", "levelname": "INFO", "message": "\ud83c\udfaf [BOOST] Query melhorada: 'rufles batata vermelha hortifruti legumes verduras frutas'"}
+{"asctime": "2026-02-03 13:28:07", "name": "tools.vector_search_subagent", "levelname": "INFO", "message": "\ud83e\udde9 [SUB-SUB-AGENT][VETORIAL] Buscando (DIRECT): 'rufles' (limit=15)"}
+{"asctime": "2026-02-03 13:28:07", "name": "tools.db_vector_search", "levelname": "INFO", "message": "\ud83d\udd0d [VECTOR SEARCH] Buscando: 'rufles batata vermelha' \u2192 'rufles batata vermelha hortifruti legumes verduras frutas'"}
+{"asctime": "2026-02-03 13:28:07", "name": "tools.db_vector_search", "levelname": "INFO", "message": "\ud83d\udd0d [VECTOR SEARCH] Buscando: 'rufles'"}
+{"asctime": "2026-02-03 13:28:07", "name": "tools.http_tools", "levelname": "INFO", "message": "Consultando estoque_preco por EAN: http://45.178.95.233:5001/api/Produto/GetProdutosEAN/77891152305912"}
+{"asctime": "2026-02-03 13:28:07", "name": "tools.http_tools", "levelname": "INFO", "message": "Consultando estoque_preco por EAN: http://45.178.95.233:5001/api/Produto/GetProdutosEAN/17891152801276"}
+{"asctime": "2026-02-03 13:28:07", "name": "tools.http_tools", "levelname": "INFO", "message": "Consultando estoque_preco por EAN: http://45.178.95.233:5001/api/Produto/GetProdutosEAN/17896024760880"}
+{"asctime": "2026-02-03 13:28:07", "name": "tools.http_tools", "levelname": "INFO", "message": "Consultando estoque_preco por EAN: http://45.178.95.233:5001/api/Produto/GetProdutosEAN/7891152305968"}
+{"asctime": "2026-02-03 13:28:07", "name": "tools.http_tools", "levelname": "INFO", "message": "Consultando estoque_preco por EAN: http://45.178.95.233:5001/api/Produto/GetProdutosEAN/7891962050713"}
+{"asctime": "2026-02-03 13:28:07", "name": "tools.http_tools", "levelname": "INFO", "message": "Consultando estoque_preco por EAN: http://45.178.95.233:5001/api/Produto/GetProdutosEAN/7892840821067"}
+{"asctime": "2026-02-03 13:28:07", "name": "tools.vector_search_subagent", "levelname": "INFO", "message": "\ud83e\udde9 [SUB-SUB-AGENT][VETORIAL] Buscando (DIRECT): 'Cheetos azul' (limit=15)"}
+{"asctime": "2026-02-03 13:28:07", "name": "tools.db_vector_search", "levelname": "INFO", "message": "\ud83d\udd0d [VECTOR SEARCH] Buscando: 'Cheetos azul'"}
+{"asctime": "2026-02-03 13:28:07", "name": "tools.vector_search_subagent", "levelname": "INFO", "message": "\ud83e\udde9 [SUB-SUB-AGENT][VETORIAL] Buscando (DIRECT): 'Cheetos lua' (limit=15)"}
+{"asctime": "2026-02-03 13:28:07", "name": "tools.db_vector_search", "levelname": "INFO", "message": "\ud83d\udd0d [VECTOR SEARCH] Buscando: 'Cheetos lua'"}
+{"asctime": "2026-02-03 13:28:07", "name": "tools.vector_search_subagent", "levelname": "INFO", "message": "\ud83e\udde9 [SUB-SUB-AGENT][VETORIAL] Buscando (DIRECT): 'Cheetos doce' (limit=15)"}
+{"asctime": "2026-02-03 13:28:07", "name": "tools.db_vector_search", "levelname": "INFO", "message": "\u23ed\ufe0f [BOOST SKIP] Produto processado detectado, pulando boost hortifruti"}
+{"asctime": "2026-02-03 13:28:07", "name": "tools.db_vector_search", "levelname": "INFO", "message": "\ud83d\udd0d [VECTOR SEARCH] Buscando: 'Cheetos doce'"}
+{"asctime": "2026-02-03 13:28:07", "name": "tools.vector_search_subagent", "levelname": "INFO", "message": "\ud83e\udde9 [SUB-SUB-AGENT][VETORIAL] Buscando (DIRECT): 'Cheetos doce azul' (limit=15)"}
+{"asctime": "2026-02-03 13:28:07", "name": "tools.db_vector_search", "levelname": "INFO", "message": "\u23ed\ufe0f [BOOST SKIP] Produto processado detectado, pulando boost hortifruti"}
+{"asctime": "2026-02-03 13:28:07", "name": "tools.db_vector_search", "levelname": "INFO", "message": "\ud83d\udd0d [VECTOR SEARCH] Buscando: 'Cheetos doce azul'"}
+{"asctime": "2026-02-03 13:28:07", "name": "tools.http_tools", "levelname": "INFO", "message": "EAN 77891152305912: 1 item(s) dispon\u00edveis ap\u00f3s filtragem"}
+{"asctime": "2026-02-03 13:28:07", "name": "tools.http_tools", "levelname": "INFO", "message": "EAN 17891152801276: 0 item(s) dispon\u00edveis ap\u00f3s filtragem"}
+{"asctime": "2026-02-03 13:28:07", "name": "tools.http_tools", "levelname": "INFO", "message": "EAN 17896024760880: 0 item(s) dispon\u00edveis ap\u00f3s filtragem"}
+{"asctime": "2026-02-03 13:28:07", "name": "tools.http_tools", "levelname": "INFO", "message": "EAN 7891152305968: 0 item(s) dispon\u00edveis ap\u00f3s filtragem"}
+{"asctime": "2026-02-03 13:28:07", "name": "tools.http_tools", "levelname": "INFO", "message": "EAN 7891962050713: 0 item(s) dispon\u00edveis ap\u00f3s filtragem"}
+{"asctime": "2026-02-03 13:28:07", "name": "tools.http_tools", "levelname": "INFO", "message": "EAN 7892840821067: 0 item(s) dispon\u00edveis ap\u00f3s filtragem"}
+{"asctime": "2026-02-03 13:28:07", "name": "tools.db_vector_search", "levelname": "INFO", "message": "\ud83d\udd00 [HYBRID SEARCH] Query: 'rufles' \u2192 'rufles'"}
+{"asctime": "2026-02-03 13:28:07", "name": "tools.db_vector_search", "levelname": "INFO", "message": "\ud83d\udd00 [HYBRID SEARCH] Query: 'rufles batata vermelha' \u2192 'rufles batata vermelha hortifruti legumes verduras frutas'"}
+{"asctime": "2026-02-03 13:28:07", "name": "tools.http_tools", "levelname": "INFO", "message": "Consultando estoque_preco por EAN: http://45.178.95.233:5001/api/Produto/GetProdutosEAN/208"}
+{"asctime": "2026-02-03 13:28:07", "name": "tools.http_tools", "levelname": "INFO", "message": "Consultando estoque_preco por EAN: http://45.178.95.233:5001/api/Produto/GetProdutosEAN/212"}
+{"asctime": "2026-02-03 13:28:07", "name": "tools.db_vector_search", "levelname": "INFO", "message": "\ud83d\udd00 [HYBRID SEARCH] Query: 'ruffles batata pequena' \u2192 'ruffles batata pequena hortifruti legumes verduras frutas'"}
+{"asctime": "2026-02-03 13:28:07", "name": "tools.http_tools", "levelname": "INFO", "message": "Consultando estoque_preco por EAN: http://45.178.95.233:5001/api/Produto/GetProdutosEAN/209"}
+{"asctime": "2026-02-03 13:28:08", "name": "tools.db_vector_search", "levelname": "INFO", "message": "\ud83d\udd00 [HYBRID SEARCH] Query: 'Cheetos azul' \u2192 'Cheetos azul'"}
+{"asctime": "2026-02-03 13:28:08", "name": "tools.http_tools", "levelname": "INFO", "message": "EAN 212: 1 item(s) dispon\u00edveis ap\u00f3s filtragem"}
+{"asctime": "2026-02-03 13:28:08", "name": "tools.http_tools", "levelname": "INFO", "message": "EAN 208: 1 item(s) dispon\u00edveis ap\u00f3s filtragem"}
+{"asctime": "2026-02-03 13:28:08", "name": "tools.db_vector_search", "levelname": "INFO", "message": "\ud83d\udd00 [HYBRID SEARCH] Query: 'Cheetos doce azul' \u2192 'Cheetos doce azul'"}
+{"asctime": "2026-02-03 13:28:08", "name": "tools.http_tools", "levelname": "INFO", "message": "EAN 209: 1 item(s) dispon\u00edveis ap\u00f3s filtragem"}
+{"asctime": "2026-02-03 13:28:08", "name": "tools.db_vector_search", "levelname": "INFO", "message": "\ud83d\udd00 [HYBRID SEARCH] Query: 'Cheetos doce' \u2192 'Cheetos doce'"}
+{"asctime": "2026-02-03 13:28:08", "name": "tools.db_vector_search", "levelname": "INFO", "message": "\ud83d\udd00 [HYBRID SEARCH] Query: 'Cheetos lua' \u2192 'Cheetos lua'"}
+{"asctime": "2026-02-03 13:28:08", "name": "tools.http_tools", "levelname": "INFO", "message": "Consultando estoque_preco por EAN: http://45.178.95.233:5001/api/Produto/GetProdutosEAN/7891962054100"}
+{"asctime": "2026-02-03 13:28:08", "name": "tools.http_tools", "levelname": "INFO", "message": "Consultando estoque_preco por EAN: http://45.178.95.233:5001/api/Produto/GetProdutosEAN/7891962054117"}
+{"asctime": "2026-02-03 13:28:08", "name": "tools.http_tools", "levelname": "INFO", "message": "Consultando estoque_preco por EAN: http://45.178.95.233:5001/api/Produto/GetProdutosEAN/7891962071619"}
+{"asctime": "2026-02-03 13:28:08", "name": "tools.vector_search_subagent", "levelname": "INFO", "message": "\ud83e\udde9 [SUB-SUB-AGENT][VETORIAL] Buscando (DIRECT): 'pimentinha de cheiro' (limit=15)"}
+{"asctime": "2026-02-03 13:28:08", "name": "tools.http_tools", "levelname": "INFO", "message": "EAN 7891962054117: 0 item(s) dispon\u00edveis ap\u00f3s filtragem"}
+{"asctime": "2026-02-03 13:28:08", "name": "tools.http_tools", "levelname": "INFO", "message": "EAN 7891962054100: 1 item(s) dispon\u00edveis ap\u00f3s filtragem"}
+{"asctime": "2026-02-03 13:28:08", "name": "tools.db_vector_search", "levelname": "INFO", "message": "\ud83d\udd0d [VECTOR SEARCH] Buscando: 'pimentinha de cheiro'"}
+{"asctime": "2026-02-03 13:28:08", "name": "tools.http_tools", "levelname": "INFO", "message": "EAN 7891962071619: 0 item(s) dispon\u00edveis ap\u00f3s filtragem"}
+{"asctime": "2026-02-03 13:28:09", "name": "tools.db_vector_search", "levelname": "INFO", "message": "\ud83d\udd00 [HYBRID SEARCH] Query: 'pimentinha de cheiro' \u2192 'pimentinha de cheiro'"}
+{"asctime": "2026-02-03 13:28:09", "name": "tools.db_vector_search", "levelname": "INFO", "message": "\ud83d\udd0d [VECTOR SEARCH] Encontrados 15 resultados"}
+{"asctime": "2026-02-03 13:28:09", "name": "tools.db_vector_search", "levelname": "INFO", "message": "\u26a1 [RERANK] Reordenando 15 resultados com FlashRank..."}
+{"asctime": "2026-02-03 13:28:09", "name": "tools.db_vector_search", "levelname": "INFO", "message": "\u2705 [RERANK] Reordena\u00e7\u00e3o conclu\u00edda. Top 1 antigo score: 0.037 -> Novo: 0.037"}
+{"asctime": "2026-02-03 13:28:09", "name": "tools.db_vector_search", "levelname": "INFO", "message": "\ud83d\udccf [GENERIC BOOST] Aplicando reordena\u00e7\u00e3o para: 'rufles'"}
+{"asctime": "2026-02-03 13:28:09", "name": "tools.db_vector_search", "levelname": "INFO", "message": "   \ud83c\udfc6 Top 1 Generic: RUCULA EFRAIM setor HORTI-FRUTI categoria FOLHAGENS subcategoria"}
+{"asctime": "2026-02-03 13:28:09", "name": "tools.db_vector_search", "levelname": "INFO", "message": "   \ud83c\udfc6 Top 2 Generic: RATICIDA KLERAT GRANUL 25G (1X40) setor LIMPEZA categoria PESTICIDAS subcategoria RATICIDA"}
+{"asctime": "2026-02-03 13:28:09", "name": "tools.db_vector_search", "levelname": "INFO", "message": "   \ud83c\udfc6 Top 3 Generic: RATICIDA KLERAT GRANUL 25G (1X40) setor LIMPEZA categoria PESTICIDAS subcategoria RATICIDA"}
+{"asctime": "2026-02-03 13:28:09", "name": "tools.db_vector_search", "levelname": "INFO", "message": "\ud83d\udd0d [VECTOR SEARCH] Encontrados 15 resultados"}
+{"asctime": "2026-02-03 13:28:09", "name": "tools.db_vector_search", "levelname": "INFO", "message": "\ud83d\udd0d [VECTOR SEARCH] Encontrados 15 resultados"}
+{"asctime": "2026-02-03 13:28:09", "name": "tools.db_vector_search", "levelname": "INFO", "message": "\u26a1 [RERANK] Reordenando 15 resultados com FlashRank..."}
+{"asctime": "2026-02-03 13:28:09", "name": "tools.db_vector_search", "levelname": "INFO", "message": "\u26a1 [RERANK] Reordenando 15 resultados com FlashRank..."}
+{"asctime": "2026-02-03 13:28:09", "name": "tools.db_vector_search", "levelname": "INFO", "message": "\ud83d\udd0d [VECTOR SEARCH] Encontrados 15 resultados"}
+{"asctime": "2026-02-03 13:28:09", "name": "tools.db_vector_search", "levelname": "INFO", "message": "\u26a1 [RERANK] Reordenando 15 resultados com FlashRank..."}
+{"asctime": "2026-02-03 13:28:09", "name": "tools.db_vector_search", "levelname": "INFO", "message": "\ud83d\udd0d [VECTOR SEARCH] Encontrados 15 resultados"}
+{"asctime": "2026-02-03 13:28:09", "name": "tools.db_vector_search", "levelname": "INFO", "message": "\u26a1 [RERANK] Reordenando 15 resultados com FlashRank..."}
+{"asctime": "2026-02-03 13:28:09", "name": "tools.db_vector_search", "levelname": "INFO", "message": "\ud83d\udd0d [VECTOR SEARCH] Encontrados 15 resultados"}
+{"asctime": "2026-02-03 13:28:09", "name": "tools.db_vector_search", "levelname": "INFO", "message": "\u26a1 [RERANK] Reordenando 15 resultados com FlashRank..."}
+{"asctime": "2026-02-03 13:28:09", "name": "tools.db_vector_search", "levelname": "INFO", "message": "\u2705 [RERANK] Reordena\u00e7\u00e3o conclu\u00edda. Top 1 antigo score: 0.018 -> Novo: 0.021"}
+{"asctime": "2026-02-03 13:28:09", "name": "tools.db_vector_search", "levelname": "INFO", "message": "\u2705 [RERANK] Reordena\u00e7\u00e3o conclu\u00edda. Top 1 antigo score: 0.997 -> Novo: 0.997"}
+{"asctime": "2026-02-03 13:28:09", "name": "tools.db_vector_search", "levelname": "INFO", "message": "\u2705 [RERANK] Reordena\u00e7\u00e3o conclu\u00edda. Top 1 antigo score: 0.007 -> Novo: 0.010"}
+{"asctime": "2026-02-03 13:28:09", "name": "tools.db_vector_search", "levelname": "INFO", "message": "\u2705 [RERANK] Reordena\u00e7\u00e3o conclu\u00edda. Top 1 antigo score: 0.225 -> Novo: 0.378"}
+{"asctime": "2026-02-03 13:28:09", "name": "tools.db_vector_search", "levelname": "INFO", "message": "\ud83d\udccf [GENERIC BOOST] Aplicando reordena\u00e7\u00e3o para: 'rufles batata vermelha'"}
+{"asctime": "2026-02-03 13:28:09", "name": "tools.db_vector_search", "levelname": "INFO", "message": "   \ud83c\udfc6 Top 1 Generic: BATATA BRANCA kg setor HORTI-FRUTI categoria LEGUMES E VERDURAS subcategoria"}
+{"asctime": "2026-02-03 13:28:09", "name": "tools.db_vector_search", "levelname": "INFO", "message": "   \ud83c\udfc6 Top 2 Generic: RUCULA EFRAIM setor HORTI-FRUTI categoria FOLHAGENS subcategoria"}
+{"asctime": "2026-02-03 13:28:09", "name": "tools.db_vector_search", "levelname": "INFO", "message": "   \ud83c\udfc6 Top 3 Generic: SALADA DE FRUTAS QUEIROZ setor HORTI-FRUTI categoria FRUTAS subcategoria"}
+{"asctime": "2026-02-03 13:28:09", "name": "tools.db_vector_search", "levelname": "INFO", "message": "\u2705 [RERANK] Reordena\u00e7\u00e3o conclu\u00edda. Top 1 antigo score: 0.005 -> Novo: 0.009"}
+{"asctime": "2026-02-03 13:28:09", "name": "tools.db_vector_search", "levelname": "INFO", "message": "\ud83d\udd0d [VECTOR SEARCH] Encontrados 15 resultados"}
+{"asctime": "2026-02-03 13:28:09", "name": "tools.db_vector_search", "levelname": "INFO", "message": "\u26a1 [RERANK] Reordenando 15 resultados com FlashRank..."}
+{"asctime": "2026-02-03 13:28:09", "name": "tools.db_vector_search", "levelname": "INFO", "message": "\u2705 [RERANK] Reordena\u00e7\u00e3o conclu\u00edda. Top 1 antigo score: 0.988 -> Novo: 0.991"}
+{"asctime": "2026-02-03 13:28:09", "name": "tools.db_vector_search", "levelname": "INFO", "message": "\ud83d\udccf [GENERIC BOOST] Aplicando reordena\u00e7\u00e3o para: 'ruffles batata pequena'"}
+{"asctime": "2026-02-03 13:28:09", "name": "tools.db_vector_search", "levelname": "INFO", "message": "   \ud83c\udfc6 Top 1 Generic: BATATA BRANCA kg setor HORTI-FRUTI categoria LEGUMES E VERDURAS subcategoria"}
+{"asctime": "2026-02-03 13:28:09", "name": "tools.db_vector_search", "levelname": "INFO", "message": "   \ud83c\udfc6 Top 2 Generic: BATATA PALITO RAPMIX 2KG setor CONGELADOS categoria BATATA FRITA CONG subcategoria"}
+{"asctime": "2026-02-03 13:28:09", "name": "tools.db_vector_search", "levelname": "INFO", "message": "   \ud83c\udfc6 Top 3 Generic: BATATA PRE FRITA MAIS BATATA 400G setor CONGELADOS categoria BATATA FRITA CONG subcategoria"}
+{"asctime": "2026-02-03 13:28:10", "name": "tools.db_vector_search", "levelname": "INFO", "message": "\ud83d\udd0d [VECTOR SEARCH] Encontrados 15 resultados"}
+{"asctime": "2026-02-03 13:28:10", "name": "tools.db_vector_search", "levelname": "INFO", "message": "\u26a1 [RERANK] Reordenando 15 resultados com FlashRank..."}
+{"asctime": "2026-02-03 13:28:10", "name": "tools.db_vector_search", "levelname": "INFO", "message": "\u2705 [RERANK] Reordena\u00e7\u00e3o conclu\u00edda. Top 1 antigo score: 0.999 -> Novo: 0.999"}
+{"asctime": "2026-02-03 13:28:10", "name": "tools.http_tools", "levelname": "INFO", "message": "Consultando estoque_preco por EAN: http://45.178.95.233:5001/api/Produto/GetProdutosEAN/7892840822514"}
+{"asctime": "2026-02-03 13:28:10", "name": "tools.http_tools", "levelname": "INFO", "message": "Consultando estoque_preco por EAN: http://45.178.95.233:5001/api/Produto/GetProdutosEAN/7892840824228"}
+{"asctime": "2026-02-03 13:28:10", "name": "tools.vector_search_subagent", "levelname": "INFO", "message": "\ud83e\udde9 [SUB-SUB-AGENT][VETORIAL] Buscando (DIRECT): 'ruffles churrasco' (limit=15)"}
+{"asctime": "2026-02-03 13:28:10", "name": "tools.db_vector_search", "levelname": "INFO", "message": "\ud83d\udd0d [VECTOR SEARCH] Buscando: 'ruffles churrasco'"}
+{"asctime": "2026-02-03 13:28:10", "name": "tools.http_tools", "levelname": "INFO", "message": "Consultando estoque_preco por EAN: http://45.178.95.233:5001/api/Produto/GetProdutosEAN/227"}
+{"asctime": "2026-02-03 13:28:10", "name": "tools.http_tools", "levelname": "INFO", "message": "EAN 7892840822514: 1 item(s) dispon\u00edveis ap\u00f3s filtragem"}
+{"asctime": "2026-02-03 13:28:10", "name": "tools.http_tools", "levelname": "INFO", "message": "EAN 7892840824228: 1 item(s) dispon\u00edveis ap\u00f3s filtragem"}
+{"asctime": "2026-02-03 13:28:10", "name": "tools.http_tools", "levelname": "INFO", "message": "EAN 227: 1 item(s) dispon\u00edveis ap\u00f3s filtragem"}
+{"asctime": "2026-02-03 13:28:11", "name": "tools.db_vector_search", "levelname": "INFO", "message": "\ud83d\udd00 [HYBRID SEARCH] Query: 'ruffles churrasco' \u2192 'ruffles churrasco'"}
+{"asctime": "2026-02-03 13:28:11", "name": "tools.db_vector_search", "levelname": "INFO", "message": "\ud83d\udd0d [VECTOR SEARCH] Encontrados 15 resultados"}
+{"asctime": "2026-02-03 13:28:11", "name": "tools.db_vector_search", "levelname": "INFO", "message": "\u26a1 [RERANK] Reordenando 15 resultados com FlashRank..."}
+{"asctime": "2026-02-03 13:28:11", "name": "tools.db_vector_search", "levelname": "INFO", "message": "\u2705 [RERANK] Reordena\u00e7\u00e3o conclu\u00edda. Top 1 antigo score: 0.999 -> Novo: 0.999"}
+{"asctime": "2026-02-03 13:28:12", "name": "tools.redis_tools", "levelname": "INFO", "message": "\ud83d\udca1 9 sugest\u00f5es salvas (Merge: 0 + 9) para 558587520060"}
+{"asctime": "2026-02-03 13:28:12", "name": "tools.search_agent", "levelname": "INFO", "message": "\ud83d\udcbe [SUB-AGENT] Cache salvo: 9 produtos para 558587520060"}
+{"asctime": "2026-02-03 13:28:19", "name": "tools.search_agent", "levelname": "INFO", "message": "\ud83d\udd75\ufe0f [SUB-AGENT] Modo de busca: individual | termos: ['batata rufles vermelho pequena']"}
+{"asctime": "2026-02-03 13:28:20", "name": "tools.vector_search_subagent", "levelname": "INFO", "message": "\ud83e\udde9 [SUB-SUB-AGENT][VETORIAL] Buscando (DIRECT): 'batata rufles vermelho pequena' (limit=15)"}
+{"asctime": "2026-02-03 13:28:20", "name": "tools.db_vector_search", "levelname": "INFO", "message": "\ud83c\udfaf [BOOST] Query melhorada: 'batata rufles vermelho pequena hortifruti legumes verduras frutas'"}
+{"asctime": "2026-02-03 13:28:20", "name": "tools.db_vector_search", "levelname": "INFO", "message": "\ud83d\udd0d [VECTOR SEARCH] Buscando: 'batata rufles vermelho pequena' \u2192 'batata rufles vermelho pequena hortifruti legumes verduras frutas'"}
+{"asctime": "2026-02-03 13:28:20", "name": "tools.db_vector_search", "levelname": "INFO", "message": "\ud83d\udd00 [HYBRID SEARCH] Query: 'batata rufles vermelho pequena' \u2192 'batata rufles vermelho pequena hortifruti legumes verduras frutas'"}
+{"asctime": "2026-02-03 13:28:21", "name": "tools.db_vector_search", "levelname": "INFO", "message": "\ud83d\udd0d [VECTOR SEARCH] Encontrados 15 resultados"}
+{"asctime": "2026-02-03 13:28:21", "name": "tools.db_vector_search", "levelname": "INFO", "message": "\u26a1 [RERANK] Reordenando 15 resultados com FlashRank..."}
+{"asctime": "2026-02-03 13:28:21", "name": "tools.db_vector_search", "levelname": "INFO", "message": "\u2705 [RERANK] Reordena\u00e7\u00e3o conclu\u00edda. Top 1 antigo score: 0.035 -> Novo: 0.038"}
+{"asctime": "2026-02-03 13:28:21", "name": "tools.db_vector_search", "levelname": "INFO", "message": "\ud83d\udccf [GENERIC BOOST] Aplicando reordena\u00e7\u00e3o para: 'batata rufles vermelho pequena'"}
+{"asctime": "2026-02-03 13:28:21", "name": "tools.db_vector_search", "levelname": "INFO", "message": "   \ud83c\udfc6 Top 1 Generic: BATATA BRANCA kg setor HORTI-FRUTI categoria LEGUMES E VERDURAS subcategoria"}
+{"asctime": "2026-02-03 13:28:21", "name": "tools.db_vector_search", "levelname": "INFO", "message": "   \ud83c\udfc6 Top 2 Generic: BATATA INGLESA  kg setor HORTI-FRUTI categoria LEGUMES E VERDURAS subcategoria"}
+{"asctime": "2026-02-03 13:28:21", "name": "tools.db_vector_search", "levelname": "INFO", "message": "   \ud83c\udfc6 Top 3 Generic: RUCULA EFRAIM setor HORTI-FRUTI categoria FOLHAGENS subcategoria"}
+{"asctime": "2026-02-03 13:28:23", "name": "tools.vector_search_subagent", "levelname": "INFO", "message": "\ud83e\udde9 [SUB-SUB-AGENT][VETORIAL] Buscando (DIRECT): 'batata frita pacote pequeno' (limit=15)"}
+{"asctime": "2026-02-03 13:28:23", "name": "tools.db_vector_search", "levelname": "INFO", "message": "\ud83c\udfaf [BOOST] Query melhorada: 'batata frita pacote pequeno hortifruti legumes verduras frutas'"}
+{"asctime": "2026-02-03 13:28:23", "name": "tools.db_vector_search", "levelname": "INFO", "message": "\ud83d\udd0d [VECTOR SEARCH] Buscando: 'batata frita pacote pequeno' \u2192 'batata frita pacote pequeno hortifruti legumes verduras frutas'"}
+{"asctime": "2026-02-03 13:28:23", "name": "tools.vector_search_subagent", "levelname": "INFO", "message": "\ud83e\udde9 [SUB-SUB-AGENT][VETORIAL] Buscando (DIRECT): 'rufles' (limit=15)"}
+{"asctime": "2026-02-03 13:28:23", "name": "tools.vector_search_subagent", "levelname": "INFO", "message": "\ud83e\udde9 [SUB-SUB-AGENT][VETORIAL] Buscando (DIRECT): 'rufles batata vermelha' (limit=15)"}
+{"asctime": "2026-02-03 13:28:23", "name": "tools.db_vector_search", "levelname": "INFO", "message": "\ud83d\udd0d [VECTOR SEARCH] Buscando: 'rufles'"}
+{"asctime": "2026-02-03 13:28:23", "name": "tools.db_vector_search", "levelname": "INFO", "message": "\ud83c\udfaf [BOOST] Query melhorada: 'rufles batata vermelha hortifruti legumes verduras frutas'"}
+{"asctime": "2026-02-03 13:28:23", "name": "tools.db_vector_search", "levelname": "INFO", "message": "\ud83d\udd0d [VECTOR SEARCH] Buscando: 'rufles batata vermelha' \u2192 'rufles batata vermelha hortifruti legumes verduras frutas'"}
+{"asctime": "2026-02-03 13:28:23", "name": "tools.vector_search_subagent", "levelname": "INFO", "message": "\ud83e\udde9 [SUB-SUB-AGENT][VETORIAL] Buscando (DIRECT): 'ruffles batata pequena' (limit=15)"}
+{"asctime": "2026-02-03 13:28:23", "name": "tools.db_vector_search", "levelname": "INFO", "message": "\ud83c\udfaf [BOOST] Query melhorada: 'ruffles batata pequena hortifruti legumes verduras frutas'"}
+{"asctime": "2026-02-03 13:28:23", "name": "tools.db_vector_search", "levelname": "INFO", "message": "\ud83d\udd0d [VECTOR SEARCH] Buscando: 'ruffles batata pequena' \u2192 'ruffles batata pequena hortifruti legumes verduras frutas'"}
+{"asctime": "2026-02-03 13:28:23", "name": "tools.db_vector_search", "levelname": "INFO", "message": "\ud83d\udd00 [HYBRID SEARCH] Query: 'rufles' \u2192 'rufles'"}
+{"asctime": "2026-02-03 13:28:24", "name": "tools.db_vector_search", "levelname": "INFO", "message": "\ud83d\udd00 [HYBRID SEARCH] Query: 'batata frita pacote pequeno' \u2192 'batata frita pacote pequeno hortifruti legumes verduras frutas'"}
+{"asctime": "2026-02-03 13:28:24", "name": "tools.db_vector_search", "levelname": "INFO", "message": "\ud83d\udd00 [HYBRID SEARCH] Query: 'rufles batata vermelha' \u2192 'rufles batata vermelha hortifruti legumes verduras frutas'"}
+{"asctime": "2026-02-03 13:28:24", "name": "tools.db_vector_search", "levelname": "INFO", "message": "\ud83d\udd00 [HYBRID SEARCH] Query: 'ruffles batata pequena' \u2192 'ruffles batata pequena hortifruti legumes verduras frutas'"}
+{"asctime": "2026-02-03 13:28:24", "name": "tools.db_vector_search", "levelname": "INFO", "message": "\ud83d\udd0d [VECTOR SEARCH] Encontrados 15 resultados"}
+{"asctime": "2026-02-03 13:28:24", "name": "tools.db_vector_search", "levelname": "INFO", "message": "\u26a1 [RERANK] Reordenando 15 resultados com FlashRank..."}
+{"asctime": "2026-02-03 13:28:24", "name": "tools.db_vector_search", "levelname": "INFO", "message": "\u2705 [RERANK] Reordena\u00e7\u00e3o conclu\u00edda. Top 1 antigo score: 0.037 -> Novo: 0.037"}
+{"asctime": "2026-02-03 13:28:24", "name": "tools.db_vector_search", "levelname": "INFO", "message": "\ud83d\udccf [GENERIC BOOST] Aplicando reordena\u00e7\u00e3o para: 'rufles'"}
+{"asctime": "2026-02-03 13:28:24", "name": "tools.db_vector_search", "levelname": "INFO", "message": "   \ud83c\udfc6 Top 1 Generic: RUCULA EFRAIM setor HORTI-FRUTI categoria FOLHAGENS subcategoria"}
+{"asctime": "2026-02-03 13:28:24", "name": "tools.db_vector_search", "levelname": "INFO", "message": "   \ud83c\udfc6 Top 2 Generic: RATICIDA KLERAT GRANUL 25G (1X40) setor LIMPEZA categoria PESTICIDAS subcategoria RATICIDA"}
+{"asctime": "2026-02-03 13:28:24", "name": "tools.db_vector_search", "levelname": "INFO", "message": "   \ud83c\udfc6 Top 3 Generic: RATICIDA KLERAT GRANUL 25G (1X40) setor LIMPEZA categoria PESTICIDAS subcategoria RATICIDA"}
+{"asctime": "2026-02-03 13:28:24", "name": "tools.db_vector_search", "levelname": "INFO", "message": "\ud83d\udd0d [VECTOR SEARCH] Encontrados 15 resultados"}
+{"asctime": "2026-02-03 13:28:24", "name": "tools.db_vector_search", "levelname": "INFO", "message": "\u26a1 [RERANK] Reordenando 15 resultados com FlashRank..."}
+{"asctime": "2026-02-03 13:28:24", "name": "tools.db_vector_search", "levelname": "INFO", "message": "\ud83d\udd0d [VECTOR SEARCH] Encontrados 15 resultados"}
+{"asctime": "2026-02-03 13:28:24", "name": "tools.db_vector_search", "levelname": "INFO", "message": "\u26a1 [RERANK] Reordenando 15 resultados com FlashRank..."}
+{"asctime": "2026-02-03 13:28:24", "name": "tools.db_vector_search", "levelname": "INFO", "message": "\u2705 [RERANK] Reordena\u00e7\u00e3o conclu\u00edda. Top 1 antigo score: 0.007 -> Novo: 0.010"}
+{"asctime": "2026-02-03 13:28:24", "name": "tools.db_vector_search", "levelname": "INFO", "message": "\ud83d\udccf [GENERIC BOOST] Aplicando reordena\u00e7\u00e3o para: 'rufles batata vermelha'"}
+{"asctime": "2026-02-03 13:28:24", "name": "tools.db_vector_search", "levelname": "INFO", "message": "   \ud83c\udfc6 Top 1 Generic: BATATA BRANCA kg setor HORTI-FRUTI categoria LEGUMES E VERDURAS subcategoria"}
+{"asctime": "2026-02-03 13:28:24", "name": "tools.db_vector_search", "levelname": "INFO", "message": "   \ud83c\udfc6 Top 2 Generic: RUCULA EFRAIM setor HORTI-FRUTI categoria FOLHAGENS subcategoria"}
+{"asctime": "2026-02-03 13:28:24", "name": "tools.db_vector_search", "levelname": "INFO", "message": "   \ud83c\udfc6 Top 3 Generic: SALADA DE FRUTAS QUEIROZ setor HORTI-FRUTI categoria FRUTAS subcategoria"}
+{"asctime": "2026-02-03 13:28:24", "name": "tools.db_vector_search", "levelname": "INFO", "message": "\u2705 [RERANK] Reordena\u00e7\u00e3o conclu\u00edda. Top 1 antigo score: 0.730 -> Novo: 0.837"}
+{"asctime": "2026-02-03 13:28:24", "name": "tools.db_vector_search", "levelname": "INFO", "message": "\ud83d\udccf [GENERIC BOOST] Aplicando reordena\u00e7\u00e3o para: 'batata frita pacote pequeno'"}
+{"asctime": "2026-02-03 13:28:24", "name": "tools.db_vector_search", "levelname": "INFO", "message": "   \ud83c\udfc6 Top 1 Generic: BATATA BRANCA kg setor HORTI-FRUTI categoria LEGUMES E VERDURAS subcategoria"}
+{"asctime": "2026-02-03 13:28:24", "name": "tools.db_vector_search", "levelname": "INFO", "message": "   \ud83c\udfc6 Top 2 Generic: BATATA PALITO RAPMIX 2KG setor CONGELADOS categoria BATATA FRITA CONG subcategoria"}
+{"asctime": "2026-02-03 13:28:24", "name": "tools.db_vector_search", "levelname": "INFO", "message": "   \ud83c\udfc6 Top 3 Generic: BATATA PALITO RAPMIX 2KG setor CONGELADOS categoria BATATA FRITA CONG subcategoria"}
+{"asctime": "2026-02-03 13:28:25", "name": "tools.db_vector_search", "levelname": "INFO", "message": "\ud83d\udd0d [VECTOR SEARCH] Encontrados 15 resultados"}
+{"asctime": "2026-02-03 13:28:25", "name": "tools.db_vector_search", "levelname": "INFO", "message": "\u26a1 [RERANK] Reordenando 15 resultados com FlashRank..."}
+{"asctime": "2026-02-03 13:28:25", "name": "tools.db_vector_search", "levelname": "INFO", "message": "\u2705 [RERANK] Reordena\u00e7\u00e3o conclu\u00edda. Top 1 antigo score: 0.988 -> Novo: 0.991"}
+{"asctime": "2026-02-03 13:28:25", "name": "tools.db_vector_search", "levelname": "INFO", "message": "\ud83d\udccf [GENERIC BOOST] Aplicando reordena\u00e7\u00e3o para: 'ruffles batata pequena'"}
+{"asctime": "2026-02-03 13:28:25", "name": "tools.db_vector_search", "levelname": "INFO", "message": "   \ud83c\udfc6 Top 1 Generic: BATATA BRANCA kg setor HORTI-FRUTI categoria LEGUMES E VERDURAS subcategoria"}
+{"asctime": "2026-02-03 13:28:25", "name": "tools.db_vector_search", "levelname": "INFO", "message": "   \ud83c\udfc6 Top 2 Generic: BATATA PALITO RAPMIX 2KG setor CONGELADOS categoria BATATA FRITA CONG subcategoria"}
+{"asctime": "2026-02-03 13:28:25", "name": "tools.db_vector_search", "levelname": "INFO", "message": "   \ud83c\udfc6 Top 3 Generic: BATATA PRE FRITA MAIS BATATA 400G setor CONGELADOS categoria BATATA FRITA CONG subcategoria"}
+{"asctime": "2026-02-03 13:28:26", "name": "tools.vector_search_subagent", "levelname": "INFO", "message": "\ud83e\udde9 [SUB-SUB-AGENT][VETORIAL] Buscando (DIRECT): 'ruffles churrasco 32g' (limit=5)"}
+{"asctime": "2026-02-03 13:28:26", "name": "tools.db_vector_search", "levelname": "INFO", "message": "\ud83d\udd0d [VECTOR SEARCH] Buscando: 'ruffles churrasco 32g'"}
+{"asctime": "2026-02-03 13:28:26", "name": "tools.db_vector_search", "levelname": "INFO", "message": "\ud83d\udd00 [HYBRID SEARCH] Query: 'ruffles churrasco 32g' \u2192 'ruffles churrasco 32g'"}
+{"asctime": "2026-02-03 13:28:27", "name": "tools.db_vector_search", "levelname": "INFO", "message": "\ud83d\udd0d [VECTOR SEARCH] Encontrados 5 resultados"}
+{"asctime": "2026-02-03 13:28:27", "name": "tools.db_vector_search", "levelname": "INFO", "message": "\u26a1 [RERANK] Reordenando 5 resultados com FlashRank..."}
+{"asctime": "2026-02-03 13:28:27", "name": "tools.db_vector_search", "levelname": "INFO", "message": "\u2705 [RERANK] Reordena\u00e7\u00e3o conclu\u00edda. Top 1 antigo score: 1.000 -> Novo: 1.000"}
+{"asctime": "2026-02-03 13:28:30", "name": "agent_multiagent", "levelname": "INFO", "message": "\ud83d\udc69\u200d\ud83d\udcbc [VENDEDOR] Resposta: Ol\u00e1! Sou a Ana, do Mercadinho Queiroz. Adicionei todos os itens do seu pedido:\n\n\u2022 Salgadinho Cheetos..."}
+{"asctime": "2026-02-03 13:28:30", "name": "agent_multiagent", "levelname": "INFO", "message": "\u2705 [MULTI-AGENT] Resposta: Ol\u00e1! Sou a Ana, do Mercadinho Queiroz. Adicionei todos os itens do seu pedido:\n\n\u2022 Salgadinho Cheetos 105g Lua - R$ 9.99  \n\u2022 Cookie Amori 40g Chocolate - R$ 1.99  \n\u2022 Wafer Animados Zoo 30g Chocolate - ..."}
+{"asctime": "2026-02-03 13:28:31", "name": "tools.whatsapp_api", "levelname": "INFO", "message": "\ud83d\udce4 Enviando mensagem para 558587520060@s.whatsapp.net: Ol\u00e1! Sou a Ana, do Mercadinho Queiroz. Adicionei t..."}
+{"asctime": "2026-02-03 13:28:32", "name": "tools.whatsapp_api", "levelname": "INFO", "message": "\u2705 Mensagem enviada com sucesso para 558587520060"}
+{"asctime": "2026-02-03 13:28:33", "name": "tools.whatsapp_api", "levelname": "INFO", "message": "\ud83d\udce4 Enviando mensagem para 558587520060@s.whatsapp.net: \u2022 Salgadinho Cheetos 105g Lua - R$ 9.99  \n\u2022 Cookie..."}
+{"asctime": "2026-02-03 13:28:34", "name": "tools.whatsapp_api", "levelname": "INFO", "message": "\u2705 Mensagem enviada com sucesso para 558587520060"}
+{"asctime": "2026-02-03 13:28:35", "name": "tools.whatsapp_api", "levelname": "INFO", "message": "\ud83d\udce4 Enviando mensagem para 558587520060@s.whatsapp.net: *N\u00e3o encontrei a Batata Ruffles vermelha pequena, ..."}
+{"asctime": "2026-02-03 13:28:35", "name": "tools.whatsapp_api", "levelname": "INFO", "message": "\u2705 Mensagem enviada com sucesso para 558587520060"}
+{"asctime": "2026-02-03 13:28:35", "name": "__main__", "levelname": "INFO", "message": "\u2705 Mensagem processada com sucesso: 558587520060"}
