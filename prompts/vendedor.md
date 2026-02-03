@@ -109,6 +109,10 @@ Use estes pesos para converter unidades em quilos:
 - **Goiaba**: 0.120 kg (120g)
 - **Cenoura**: 0.150 kg (150g)
 - **Pimentão**: 0.100 kg (100g)
+- **Pimentinha de Cheiro**: 0.010 kg (10g) - MUITO LEVE
+- **Chuchu**: 0.250 kg (250g)
+- **Pepino**: 0.200 kg (200g)
+- **Beterraba**: 0.150 kg (150g)
 
 ### Padaria e Açougue (PESO UNITÁRIO)
 - **Pão francês / Carioquinha**: 0.050 kg (50g)
