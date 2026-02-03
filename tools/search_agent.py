@@ -107,26 +107,32 @@ def _run_analista_agent_for_term(term: str, telefone: Optional[str] = None) -> d
 
 
 TERM_EXTRACTOR_PROMPT = """
-Você é um extrator de termos de produtos.
+Você é um extrator de termos de produtos para um supermercado.
 
-Tarefa: Dado o texto do cliente, retorne uma lista JSON pura de termos curtos para busca no catálogo.
+Tarefa: Dado o texto do cliente, retorne uma lista JSON pura de termos para busca no catálogo.
 
-Regras:
-- Retorne apenas JSON (uma lista de strings).
-- Remova quantidades (ex: "2x", "2 unidades") SE forem a quantidade do pedido.
-- **MANTENHA NÚMEROS** que fazem parte do produto (ex: "Kit 3", "Pack 12", "Coca 2L", "Omo 1kg", "Lixa 120").
-- **MANTENHA MARCAS E NOMES PRÓPRIOS**: Mesmo que pareçam estranhos ou apelidos (ex: "Arroz Vô", "Café Melita", "Sabão Ala"). NÃO remova palavras só porque não conhece.
-- **IMPORTANTE**: MANTENHA palavras que indicam pedido de OPÇÕES (ex: "opções", "quais", "tipos", "ver", "lista").
-  - Ex: "arroz e sabão (opções)" -> Retorne ["arroz", "sabão opções"]
-- **PEDIDO POR VALOR (CRÍTICO)**: Se o cliente pediu por VALOR EM DINHEIRO (ex: "5 reais de presunto", "10 conto de queijo", "R$ 5 de salsicha"):
-  - **ADICIONE "KG"** ao termo do produto. Motivo: Pedido monetário implica item a GRANEL.
-  - Ex: "5 reais de presunto" -> Retorne ["presunto KG"]
-  - Ex: "10 reais de queijo e 5 reais de salsicha" -> Retorne ["queijo KG", "salsicha KG"]
-- Se houver mais de um produto, retorne vários termos.
-- Se for apenas um produto, retorne lista com 1 termo.
-- Se não der para identificar, retorne lista vazia.
+## REGRAS CRÍTICAS:
 
-Texto do cliente: {text}
+1. **NUNCA REMOVA MARCAS**: Palavras como "Vô", "Vo", "Omo", "Ala", "Pilão", "Melita", "Dolca", "Richester" SÃO MARCAS.
+   - ❌ ERRADO: "arroz vô parboizado" → ["arroz parboizado"]
+   - ✅ CERTO: "arroz vô parboizado" → ["arroz vô parboizado"]
+   - ❌ ERRADO: "café Pilão" → ["café"]
+   - ✅ CERTO: "café Pilão" → ["café Pilão"]
+
+2. **MANTENHA NÚMEROS DE PRODUTO**: "Kit 3", "Pack 12", "Coca 2L", "1kg" fazem parte do produto.
+
+3. **REMOVA APENAS QUANTIDADE DO PEDIDO**: "2x arroz" → ["arroz"], "1 coca" → ["coca"]
+
+4. **PEDIDO POR VALOR**: Se tem R$ ou "reais de", adicione "KG":
+   - "5 reais de presunto" → ["presunto KG"]
+   - "10 reais de queijo" → ["queijo KG"]
+
+5. **OPÇÕES**: Mantenha palavras como "opções", "quais", "tipos":
+   - "sabão (opções)" → ["sabão opções"]
+
+Retorne APENAS JSON (lista de strings).
+
+Texto: {text}
 """.strip()
 
 # ============================================
