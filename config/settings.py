@@ -56,15 +56,16 @@ class Settings(BaseSettings):
     smart_responder_apikey: str = ""
     pre_resolver_enabled: bool = False
     
-    # WhatsApp API (Nova Integração)
-    whatsapp_api_base_url: str = "https://sistema-whatsapp-api.5mos1l.easypanel.host"
-    whatsapp_instance_token: Optional[str] = None  # Header: X-Instance-Token
-    
-    # WhatsApp (Legado - apenas para compatibilidade com .env antigos)
-    whatsapp_api_url: Optional[str] = None  # Deprecated: use whatsapp_api_base_url
-    whatsapp_token: Optional[str] = None    # Deprecated: use whatsapp_instance_token
-    whatsapp_method: str = "POST"
-    whatsapp_agent_number: Optional[str] = None
+    # ============================================
+    # WhatsApp API - REMOVIDA
+    # ============================================
+    # A integração anterior foi removida.
+    # Configure a nova API aqui quando disponível.
+    # 
+    # Exemplo para Evolution API:
+    # evolution_api_url: Optional[str] = None
+    # evolution_api_key: Optional[str] = None
+    # evolution_instance: Optional[str] = None
     
     # Human Takeover - Tempo de pausa quando atendente humano assume (em segundos)
     human_takeover_ttl: int = 2400  # 40 minutos padrão
