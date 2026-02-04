@@ -40,6 +40,15 @@ Analise todos e aplique os filtros nesta ordem:
 - **Cor/Variante**: Se pediu "Vermelho", não mande "Azul" ou "Prata". Se pediu "Duro" (Box), não mande "Maço" (Mole) se houver distinção clara.
 - **Marca**: Se pediu "Coca", não mande "Pepsi".
 
+### FILTRO 1.1: REGRAS DE CARNES E FRANGOS (CRÍTICO)
+- **Frango Inteiro**: Se pediu "Frango Inteiro", "Frango" (genérico) ou "Galinha":
+  - **ESCOLHA**: "Frango Abatido" ou "Frango Congelado Inteiro".
+  - **PROIBIDO**: Peito, Coxa, Sobrecoxa, Filé, Sassami, Milanesa.
+  - *Mesmo que o cliente diga "cortado", mande o Inteiro/Abatido (o corte é serviço do açougue).*
+- **Picadinho**: Se pediu "Picadinho" ou "Carne para Picadinho":
+  - **ESCOLHA**: Carnes em cubos, Acém, Coxão Mole, Chã.
+  - **EVITE**: Carne Moída (só mande se não tiver outra opção ou se o cliente pediu "moída").
+
 ### FILTRO 2: DISPONIBILIDADE
 - Verifique se o item parece ser o correto.
 - **Se não encontrar o variante exato**: Retorne `ok: false, motivo: "Variante X não encontrada"`.
@@ -106,7 +115,7 @@ Retorne campo `opcoes` com lista se:
 | Frango / Galinha | FRANGO ABATIDO (KG) |
 
 ### Proibições Específicas
-- **Frango em Oferta**: Se encontrar produto com nome "Oferta" ou "Promoção" para Frango, **NÃO USE** (geralmente é venda apenas balcão). Use "Frango Abatido" oub similar.
+- **Frango em Oferta**: Se encontrar produto com nome "Oferta" ou "Promoção" para Frango, **NÃO USE** (geralmente é venda apenas balcão). Use "Frango Abatido".
 
 ---
 
