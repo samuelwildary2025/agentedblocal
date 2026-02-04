@@ -1041,7 +1041,7 @@ async def webhook(req: Request, tasks: BackgroundTasks):
 
         active, _ = is_agent_in_cooldown(num)
         if active:
-            push_message_to_buffer(num, txt, message_id=msg_id)
+            # push_message_to_buffer(num, txt, message_id=msg_id) -> REMOVED to ignore messages during pause
             # SALVAR MENSAGEM DO CLIENTE NO HISTÓRICO mesmo durante cooldown
             try:
                 from langchain_core.messages import HumanMessage

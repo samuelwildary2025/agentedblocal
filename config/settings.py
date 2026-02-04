@@ -67,7 +67,7 @@ class Settings(BaseSettings):
     whatsapp_agent_number: Optional[str] = None
     
     # Human Takeover - Tempo de pausa quando atendente humano assume (em segundos)
-    human_takeover_ttl: int = 900  # 15 minutos padrão
+    human_takeover_ttl: int = 2400  # 40 minutos padrão
     
     # Queue Workers (ARQ)
     workers_max_jobs: int = 15  # Aumentado de 5 para 15 (suportado pela nova chave com billing)
