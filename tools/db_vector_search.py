@@ -140,6 +140,9 @@ def search_products_vector(query: str, limit: int = 20) -> str:
         "coca-cola 2l": "refrig coca cola pet 2l",
         "fanta": "refrig fanta",
         "sprite": "refrig sprite",
+        # Cuscuz -> Flocão
+        "cuscuz": "flocao",
+        "pacote de cuscuz": "flocao",
         # Padaria - NOVO
         "carioquinha": "pao frances",
         "carioquinhas": "pao frances",
