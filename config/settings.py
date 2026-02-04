@@ -57,15 +57,11 @@ class Settings(BaseSettings):
     pre_resolver_enabled: bool = False
     
     # ============================================
-    # WhatsApp API - REMOVIDA
+    # WhatsApp API - UAZAPI
     # ============================================
-    # A integração anterior foi removida.
-    # Configure a nova API aqui quando disponível.
-    # 
-    # Exemplo para Evolution API:
-    # evolution_api_url: Optional[str] = None
-    # evolution_api_key: Optional[str] = None
-    # evolution_instance: Optional[str] = None
+    # Documentação: https://docs.uazapi.com/
+    uazapi_base_url: Optional[str] = None  # Ex: https://aimerc.uazapi.com
+    uazapi_token: Optional[str] = None     # Token da instância
     
     # Human Takeover - Tempo de pausa quando atendente humano assume (em segundos)
     human_takeover_ttl: int = 2400  # 40 minutos padrão
