@@ -493,10 +493,16 @@ def _extract_incoming(payload: Dict[str, Any]) -> Dict[str, Any]:
     quoted_text = None
     quoted_sender = None
     
+    # DEBUG: Log do campo quoted para investigar estrutura
+    raw_quoted = payload.get("quoted")
+    if raw_quoted:
+        logger.info(f"🔍 DEBUG QUOTED: type={type(raw_quoted).__name__}, value={str(raw_quoted)[:300]}")
+    
     # Tentar extrair de diferentes estruturas de payload
     # 1. Formato UAZAPI: "quoted" (campo principal)
     quoted_msg = payload.get("quoted") or payload.get("quotedMsg") or payload.get("quotedMessage") or {}
     if isinstance(quoted_msg, dict) and quoted_msg:
+        # UAZAPI envia: quoted.body, quoted.text, quoted.caption
         # UAZAPI envia: quoted.body, quoted.text, quoted.caption
         quoted_text = quoted_msg.get("body") or quoted_msg.get("text") or quoted_msg.get("caption") or quoted_msg.get("conversation")
         quoted_sender = quoted_msg.get("participant") or quoted_msg.get("sender") or quoted_msg.get("from")
