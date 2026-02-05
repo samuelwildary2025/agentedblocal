@@ -494,22 +494,31 @@ def _extract_incoming(payload: Dict[str, Any]) -> Dict[str, Any]:
     quoted_sender = None
     
     # Tentar extrair de diferentes estruturas de payload
-    # 1. Formato UAZAPI: quotedMsg ou quotedMessage
-    quoted_msg = payload.get("quotedMsg") or payload.get("quotedMessage") or {}
-    if isinstance(quoted_msg, dict):
-        quoted_text = quoted_msg.get("body") or quoted_msg.get("text") or quoted_msg.get("caption")
+    # 1. Formato UAZAPI: "quoted" (campo principal)
+    quoted_msg = payload.get("quoted") or payload.get("quotedMsg") or payload.get("quotedMessage") or {}
+    if isinstance(quoted_msg, dict) and quoted_msg:
+        # UAZAPI envia: quoted.body, quoted.text, quoted.caption
+        quoted_text = quoted_msg.get("body") or quoted_msg.get("text") or quoted_msg.get("caption") or quoted_msg.get("conversation")
         quoted_sender = quoted_msg.get("participant") or quoted_msg.get("sender") or quoted_msg.get("from")
+        if quoted_text:
+            logger.info(f"💬 [UAZAPI] Quoted extraído de 'quoted': {quoted_text[:50]}...")
     
     # 2. Formato contextInfo (Baileys/WPPConnect)
-    context_info = payload.get("contextInfo") or payload.get("context") or {}
-    if isinstance(context_info, dict) and not quoted_text:
-        quoted_text = context_info.get("quotedMessage", {}).get("conversation") or \
-                      context_info.get("quotedMessage", {}).get("extendedTextMessage", {}).get("text")
-        quoted_sender = context_info.get("participant") or context_info.get("remoteJid")
-    
-    # 3. Formato simples (algumas APIs enviam direto)
     if not quoted_text:
-        quoted_text = payload.get("quotedText") or payload.get("quoted_text")
+        context_info = payload.get("contextInfo") or payload.get("context") or {}
+        if isinstance(context_info, dict) and context_info:
+            quoted_inner = context_info.get("quotedMessage", {})
+            if isinstance(quoted_inner, dict):
+                quoted_text = quoted_inner.get("conversation") or \
+                              quoted_inner.get("extendedTextMessage", {}).get("text") or \
+                              quoted_inner.get("body")
+            quoted_sender = context_info.get("participant") or context_info.get("remoteJid")
+            if quoted_text:
+                logger.info(f"💬 [contextInfo] Quoted extraído: {quoted_text[:50]}...")
+    
+    # 3. Formato simples (algumas APIs enviam direto como string)
+    if not quoted_text:
+        quoted_text = payload.get("quotedText") or payload.get("quoted_text") or payload.get("quotedBody")
     
     # Se encontrou uma mensagem citada, adicionar como contexto
     if quoted_text:
@@ -517,7 +526,7 @@ def _extract_incoming(payload: Dict[str, Any]) -> Dict[str, Any]:
         if quoted_text:
             # Formatar para o agente entender o contexto
             context_prefix = f"[Cliente respondeu à mensagem: \"{quoted_text[:200]}\"]\n"
-            logger.info(f"💬 Quoted message detectada: {quoted_text[:50]}...")
+            logger.info(f"💬 Quoted message detectada: {quoted_text[:80]}...")
     else:
         context_prefix = ""
     
