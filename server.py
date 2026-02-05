@@ -440,6 +440,14 @@ def _extract_incoming(payload: Dict[str, Any]) -> Dict[str, Any]:
     if isinstance(message_any, dict):
         candidates.append(message_any.get("sender"))
         candidates.append(message_any.get("chatid"))
+        # NOVO: sender_pn (comum em payloads de nova API para LID)
+        candidates.append(message_any.get("sender_pn"))
+    
+    # NOVO: Tentar extrair do ID da mensagem se tiver formato PHONE:ID
+    # Ex: 558592978150:ACE654F2ED254EE46EE21174433DBC4D
+    msg_id_val = message_any.get("id") or payload.get("id") or message_any.get("messageid")
+    if msg_id_val and ":" in str(msg_id_val):
+        candidates.append(str(msg_id_val).split(":")[0])
     
     # 2. Objeto Chat
     candidates.append(chat.get("id"))
