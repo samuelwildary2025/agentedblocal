@@ -56,7 +56,7 @@ Descarte itens que não correspondam a:
 
 ## 📖 DICIONÁRIO DE PRODUTOS
 
-> Define como escolher produtos para cada termo. Não altera a busca.
+> Define como escolher produtos para cada termo. Sempre que o cliente mencionar algum desses termos que estao em primeiro faça a busca no banco com o termo que esta em negrito.
 
 ### 🥩 Carnes e Aves
 - frango / galinha → **Frango Abatido Inteiro** ❌ (nunca: peito, coxa, filé, sassami)
