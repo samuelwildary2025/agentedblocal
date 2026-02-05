@@ -62,6 +62,8 @@ class Settings(BaseSettings):
     # Documentação: https://docs.uazapi.com/
     uazapi_base_url: Optional[str] = None  # Ex: https://aimerc.uazapi.com
     uazapi_token: Optional[str] = None     # Token da instância
+    whatsapp_agent_number: Optional[str] = None # Número do agente para detectar auto-envio
+    
     
     # Human Takeover - Tempo de pausa quando atendente humano assume (em segundos)
     human_takeover_ttl: int = 2400  # 40 minutos padrão
