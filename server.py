@@ -477,7 +477,7 @@ def _extract_incoming(payload: Dict[str, Any]) -> Dict[str, Any]:
             cleaned = _clean_number(cid)
             if cleaned:
                 # Validação extra: ID geralmente tem : ou prefixo longo
-                logger.info(f"⚠️ Telefone extraído do ID da mensagem: {cleaned}")
+                logger.info(f"ℹ️ Telefone extraído do ID da mensagem: {cleaned}")
                 telefone = cleaned
                 break
             
