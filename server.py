@@ -493,18 +493,22 @@ def _extract_incoming(payload: Dict[str, Any]) -> Dict[str, Any]:
     quoted_text = None
     quoted_sender = None
     
-    # DEBUG: Log do campo quoted para investigar estrutura
+    # DEBUG: Log do campo quoted para investigar estrutura (verifica em ambos os payloads)
     raw_quoted = payload.get("quoted")
+    raw_quoted_original = original_data.get("quoted") if original_data else None
+    
+    # Log de debug para investigar
     if raw_quoted:
-        logger.info(f"🔍 DEBUG QUOTED: type={type(raw_quoted).__name__}, value={str(raw_quoted)[:300]}")
+        logger.info(f"🔍 DEBUG QUOTED (payload): type={type(raw_quoted).__name__}, keys={list(raw_quoted.keys()) if isinstance(raw_quoted, dict) else 'N/A'}, value={str(raw_quoted)[:200]}")
+    if raw_quoted_original:
+        logger.info(f"🔍 DEBUG QUOTED (original): type={type(raw_quoted_original).__name__}, keys={list(raw_quoted_original.keys()) if isinstance(raw_quoted_original, dict) else 'N/A'}")
     
     # Tentar extrair de diferentes estruturas de payload
-    # 1. Formato UAZAPI: "quoted" (campo principal)
-    quoted_msg = payload.get("quoted") or payload.get("quotedMsg") or payload.get("quotedMessage") or {}
+    # 1. Formato UAZAPI: "quoted" (campo principal - pode estar em payload ou original_data)
+    quoted_msg = payload.get("quoted") or original_data.get("quoted") or payload.get("quotedMsg") or payload.get("quotedMessage") or {}
     if isinstance(quoted_msg, dict) and quoted_msg:
-        # UAZAPI envia: quoted.body, quoted.text, quoted.caption
-        # UAZAPI envia: quoted.body, quoted.text, quoted.caption
-        quoted_text = quoted_msg.get("body") or quoted_msg.get("text") or quoted_msg.get("caption") or quoted_msg.get("conversation")
+        # UAZAPI envia: quoted.body, quoted.text, quoted.caption, ou pode ser nested
+        quoted_text = quoted_msg.get("body") or quoted_msg.get("text") or quoted_msg.get("caption") or quoted_msg.get("conversation") or quoted_msg.get("message")
         quoted_sender = quoted_msg.get("participant") or quoted_msg.get("sender") or quoted_msg.get("from")
         if quoted_text:
             logger.info(f"💬 [UAZAPI] Quoted extraído de 'quoted': {quoted_text[:50]}...")
