@@ -69,6 +69,22 @@ def run_vector_search_subagent(query: str, limit: int = 15, thread_id: Optional[
     if not q:
         return "Nenhum produto encontrado."
 
+    # ------------------------------------------
+    # MAPEAMENTO DE TERMOS (Pré-busca)
+    # Transforma termos genéricos em termos que o banco vetorial entende
+    # ------------------------------------------
+    TERM_MAPPINGS = {
+        "pacote de pao": "pao hot dog",
+        "pacote de pão": "pao hot dog",
+    }
+    
+    q_lower = q.lower()
+    for original, replacement in TERM_MAPPINGS.items():
+        if original in q_lower:
+            q = q_lower.replace(original, replacement)
+            logger.info(f"🔄 [TERM MAPPING] '{original}' → '{replacement}'")
+            break
+
     logger.info(f"🧩 [SUB-SUB-AGENT][VETORIAL] Buscando (DIRECT): '{q}' (limit={limit})")
     
     # Otimização: Chamada direta à função de busca, removendo layer de agente desnecessário
@@ -78,3 +94,4 @@ def run_vector_search_subagent(query: str, limit: int = 15, thread_id: Optional[
     except Exception as e:
         logger.error(f"Erro na busca vetorial direta: {e}")
         return f"Erro ao buscar produtos: {str(e)}"
+
