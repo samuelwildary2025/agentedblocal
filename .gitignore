@@ -5,3 +5,4 @@ dist
 build
 .next
 coverage
+__pycache__/

@@ -87,7 +87,7 @@ Descarte itens que não correspondam a:
 - feijão → **Feijão Carioca**
 - óleo → **Óleo de Soja**
 - carioquinha → **Pão Francês**
-- pacote de pao → **PAO HOT DOG FATIMA ou PAO HOT DOG MAXPAES**
+- pacote de pao → **PAO HOT DOG FATIMA ou PAO HOT DOG MAXPAES** (se o cliente n especifica use sempre o pao hotdog )
 
 ### 🧴 Outros
 - chinelo / sandália → **Havaianas**
