@@ -769,8 +769,9 @@ def send_whatsapp_message(telefone: str, mensagem: str) -> bool:
     """Envia mensagem usando a nova classe WhatsAppAPI."""
     
     # Configuração de split de mensagens
-    # Max 500 chars por mensagem para não enviar textões
-    max_len = 500
+    # Preferir UMA única mensagem para evitar confusão no WhatsApp.
+    # Só dividir se estiver absurdamente grande.
+    max_len = 2000
     msgs = []
     
     if len(mensagem) > max_len:
