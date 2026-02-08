@@ -74,14 +74,14 @@ def estoque(url: str) -> str:
         # que gastam tokens desnecessariamente.
         def _filter_product(prod: Dict[str, Any]) -> Dict[str, Any]:
             keys_to_keep = [
-                "id", "produto", "nome", "descricao", 
+                "id", "id_loja", "produto", "nome", "descricao", 
                 "preco", "preco_venda", "valor", "valor_unitario",
                 "estoque", "quantidade", "saldo", "disponivel"
             ]
             clean = {}
             for k, v in prod.items():
                 if k.lower() in keys_to_keep or any(x in k.lower() for x in ["preco", "valor", "estoque"]):
-                     # Ignora campos de imposto/fiscal mesmo se tiver palavras chave
+                    # Ignora campos de imposto/fiscal mesmo se tiver palavras chave
                     if any(x in k.lower() for x in ["trib", "ncm", "fiscal", "custo", "margem"]):
                         continue
                     clean[k] = v
@@ -380,9 +380,8 @@ def estoque_preco(ean: str) -> str:
     }
     
     # RETRY CONFIG
-    # RETRY CONFIG
-    MAX_RETRIES = 2
-    TIMEOUTS = [4, 6]  # Timeouts reduzidos (total máx 10s) para não travar o agente
+    MAX_RETRIES = 3
+    TIMEOUTS = [10, 15, 20]  # Timeouts aumentados para evitar "Problema Técnico" em redes lentas
     
     last_error = None
     
@@ -545,6 +544,12 @@ def estoque_preco(ean: str) -> str:
 
                 # Cria dict limpo apenas com campos úteis para o agente
                 clean: Dict[str, Any] = {}
+
+                # ID da Loja e Identificadores
+                if "id_loja" in it:
+                    clean["id_loja"] = it["id_loja"]
+                if "id" in it:
+                    clean["id"] = it["id"]
 
                 produto_nome = it.get("produto") or it.get("nome") or it.get("descricao")
                 if produto_nome:

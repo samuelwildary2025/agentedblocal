@@ -1077,9 +1077,10 @@ def check_circuit_open(service: str) -> bool:
     except:
         return False
 
-def report_failure(service: str, threshold: int = 5, cooldown: int = 60) -> None:
+def report_failure(service: str, threshold: int = 15, cooldown: int = 30) -> None:
     """
     Reporta uma falha no serviço. Se atingir o threshold, abre o circuito.
+    Aumentado threshold (5->15) e reduzido cooldown (60->30) para evitar falsos positivos de "sistema fora".
     """
     client = get_redis_client()
     if client is None: return
