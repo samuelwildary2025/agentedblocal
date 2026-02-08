@@ -161,6 +161,16 @@ def search_products_vector(query: str, limit: int = 20) -> str:
     mode = str(getattr(settings, "vector_search_mode", "exact") or "exact").lower().strip()
     use_fallback = bool(getattr(settings, "vector_search_fallback", True))
 
+    term_translations_norm: Dict[str, str] = {}
+    if TERM_TRANSLATIONS:
+        for k, v in TERM_TRANSLATIONS.items():
+            if not isinstance(k, str) or not isinstance(v, str):
+                continue
+            kk = remove_accents(k).lower().strip()
+            vv = v.strip()
+            if kk and vv:
+                term_translations_norm[kk] = vv
+
     def _apply_translations(q: str) -> str:
         q_lower_local = q.lower().strip()
         out = q
@@ -203,7 +213,11 @@ def search_products_vector(query: str, limit: int = 20) -> str:
         return q
 
     enhanced_query = query
-    if query_lower in ("nescal", "nescau"):
+    mapped = term_translations_norm.get(query_lower)
+    if mapped:
+        enhanced_query = remove_accents(mapped)
+        logger.info(f"📚 [DICIONÁRIO] '{query_lower}' → '{enhanced_query}'")
+    elif query_lower in ("nescal", "nescau"):
         enhanced_query = f"{query} achoc liq nescau 180ml"
         logger.info(f"🎯 [PREFERÊNCIA] Termo '{query_lower}' direcionado para caixinha 180ml")
     if mode != "exact":
