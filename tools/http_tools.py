@@ -474,7 +474,10 @@ def estoque_preco(ean: str) -> str:
                 # PADARIA: produtos feitos na hora, não têm controle de quantidade
                 # FRIGORIFICO/AÇOUGUE: vendem antes de dar entrada na nota
                 # HORTI/LEGUMES: idem, produção variável
-                cat = str(d.get("classificacao01", "")).upper()
+                cat1 = str(d.get("classificacao01", "") or "")
+                cat2 = str(d.get("classificacao02", "") or "")
+                cat3 = str(d.get("classificacao03", "") or "")
+                cat = f"{cat1} {cat2} {cat3}".upper()
                 name_upper = str(d.get("produto") or d.get("nome") or "").upper()
                 
                 # Lista expandida de termos que IGNORAM estoque

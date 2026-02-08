@@ -646,42 +646,56 @@ def vendedor_node(state: AgentState) -> dict:
         "recursion_limit": 25
     }
     
-    # Executar
+    def _check_hallucination(agent_result: dict, agent_response: str) -> tuple[bool, str, set]:
+        messages_local = agent_result.get("messages", []) if isinstance(agent_result, dict) else []
+        tools_called_local = set()
+        for msg in messages_local:
+            if isinstance(msg, AIMessage) and hasattr(msg, "tool_calls") and msg.tool_calls:
+                for call in msg.tool_calls:
+                    tools_called_local.add(call["name"])
+
+        response_lower_local = (agent_response or "").lower()
+        hallucination_detected_local = False
+        hallucination_reason_local = ""
+
+        if "adicionei" in response_lower_local or "adicionado" in response_lower_local:
+            if "add_item_tool" not in tools_called_local:
+                hallucination_detected_local = True
+                hallucination_reason_local = "disse 'adicionei' sem chamar add_item_tool"
+
+        if "encontrei" in response_lower_local and "busca_analista" not in tools_called_local:
+            if "get_pending_suggestions_tool" not in tools_called_local:
+                hallucination_detected_local = True
+                hallucination_reason_local = "disse 'encontrei' sem buscar"
+
+        return hallucination_detected_local, hallucination_reason_local, tools_called_local
+
     result = agent.invoke({"messages": state["messages"]}, config)
-    
-    # Extrair resposta
     response = _extract_response(result)
 
-    # --- TRAVA DE ALUCINAÇÃO ROBUSTA (V5) ---
-    messages = result.get("messages", [])
-    
-    # Coletar todas as tools chamadas
-    tools_called = set()
-    for msg in messages:
-        if isinstance(msg, AIMessage) and hasattr(msg, 'tool_calls') and msg.tool_calls:
-            for call in msg.tool_calls:
-                tools_called.add(call['name'])
-    
-    response_lower = response.lower()
-    hallucination_detected = False
-    hallucination_reason = ""
-    
-    # Verificar: disse "adicionei" sem chamar add_item_tool
-    if "adicionei" in response_lower or "adicionado" in response_lower:
-        if "add_item_tool" not in tools_called:
-            hallucination_detected = True
-            hallucination_reason = "disse 'adicionei' sem chamar add_item_tool"
-    
-    # Verificar: disse "encontrei" sem buscar
-    if "encontrei" in response_lower and "busca_analista" not in tools_called:
-        # Só é problema se não veio de get_pending_suggestions
-        if "get_pending_suggestions_tool" not in tools_called:
-            hallucination_detected = True
-            hallucination_reason = "disse 'encontrei' sem buscar"
-    
+    hallucination_detected, hallucination_reason, tools_called = _check_hallucination(result, response)
     if hallucination_detected:
         logger.warning(f"⚠️ ALUCINAÇÃO DETECTADA: {hallucination_reason}. Tools usadas: {tools_called}")
-        response = "Desculpe, tive um problema técnico. Pode me dizer novamente o que você gostaria?"
+
+        retry_instruction = SystemMessage(
+            content=(
+                "RETRY INTERNO (não mostrar ao cliente): sua última resposta foi inválida.\n"
+                "- Se você afirmar que adicionou itens, você DEVE chamar add_item_tool.\n"
+                "- Se você afirmar que encontrou produtos, você DEVE chamar busca_analista (ou get_pending_suggestions_tool).\n"
+                "- Refaça o processamento do pedido e CHAME as ferramentas necessárias.\n"
+                "- Não peça desculpas nem mencione erro técnico. Retorne apenas a resposta final ao cliente."
+            )
+        )
+        retry_messages = list(state["messages"]) + [retry_instruction]
+        retry_result = agent.invoke({"messages": retry_messages}, config)
+        retry_response = _extract_response(retry_result)
+        retry_hallucination, retry_reason, retry_tools = _check_hallucination(retry_result, retry_response)
+        if not retry_hallucination and retry_response:
+            result = retry_result
+            response = retry_response
+        else:
+            logger.warning(f"⚠️ ALUCINAÇÃO (RETRY) DETECTADA: {retry_reason}. Tools: {retry_tools}")
+            response = "Desculpe, tive um problema técnico. Pode me dizer novamente o que você gostaria?"
 
     logger.info(f"👩‍💼 [VENDEDOR] Resposta: {response[:100]}...")
     
@@ -709,41 +723,60 @@ def caixa_node(state: AgentState) -> dict:
         "recursion_limit": 15  # Limite menor, operações mais simples
     }
     
-    # Executar
+    def _check_cashier_hallucination(agent_result: dict, agent_response: str) -> tuple[bool, str, set]:
+        messages_local = agent_result.get("messages", []) if isinstance(agent_result, dict) else []
+        tools_called_local = set()
+        for msg in messages_local:
+            if isinstance(msg, AIMessage) and hasattr(msg, "tool_calls") and msg.tool_calls:
+                for call in msg.tool_calls:
+                    tools_called_local.add(call["name"])
+
+        response_lower_local = (agent_response or "").lower()
+        hallucination_detected_local = False
+        hallucination_reason_local = ""
+
+        confirmacao_words = ["pedido confirmado", "pedido enviado", "pedido finalizado", "✅ pedido"]
+        if any(w in response_lower_local for w in confirmacao_words):
+            if "finalizar_pedido_tool" not in tools_called_local:
+                hallucination_detected_local = True
+                hallucination_reason_local = "disse 'pedido confirmado' sem chamar finalizar_pedido_tool"
+
+        import re
+        total_match = re.search(r"total[:\s]*r\$\s*\d+", response_lower_local)
+        if total_match and "calcular_total_tool" not in tools_called_local and "finalizar_pedido_tool" not in tools_called_local:
+            hallucination_detected_local = True
+            hallucination_reason_local = "mencionou total sem calcular"
+
+        return hallucination_detected_local, hallucination_reason_local, tools_called_local
+
     result = agent.invoke({"messages": state["messages"]}, config)
-    
-    # Extrair resposta
     response = _extract_response(result)
-    
-    # --- TRAVA DE ALUCINAÇÃO CAIXA (V5) ---
-    messages = result.get("messages", [])
-    tools_called = set()
-    for msg in messages:
-        if isinstance(msg, AIMessage) and hasattr(msg, 'tool_calls') and msg.tool_calls:
-            for call in msg.tool_calls:
-                tools_called.add(call['name'])
-    
-    response_lower = response.lower()
-    hallucination_detected = False
-    hallucination_reason = ""
-    
-    # Verificar: disse "pedido confirmado/finalizado" sem chamar finalizar_pedido_tool
-    confirmacao_words = ["pedido confirmado", "pedido enviado", "pedido finalizado", "✅ pedido"]
-    if any(w in response_lower for w in confirmacao_words):
-        if "finalizar_pedido_tool" not in tools_called:
-            hallucination_detected = True
-            hallucination_reason = "disse 'pedido confirmado' sem chamar finalizar_pedido_tool"
-    
-    # Verificar: mencionou total específico sem calcular
-    import re
-    total_match = re.search(r'total[:\s]*r\$\s*\d+', response_lower)
-    if total_match and "calcular_total_tool" not in tools_called and "finalizar_pedido_tool" not in tools_called:
-        hallucination_detected = True
-        hallucination_reason = "mencionou total sem calcular"
-    
+
+    hallucination_detected, hallucination_reason, tools_called = _check_cashier_hallucination(result, response)
     if hallucination_detected:
         logger.warning(f"⚠️ ALUCINAÇÃO CAIXA: {hallucination_reason}. Tools: {tools_called}")
-        response = "Desculpe, tive um problema ao processar. Vou verificar seu pedido novamente..."
+
+        retry_instruction = SystemMessage(
+            content=(
+                "RETRY INTERNO (não mostrar ao cliente): sua última resposta foi inválida.\n"
+                "- Se você afirmar que confirmou/finalizou o pedido, você DEVE chamar finalizar_pedido_tool.\n"
+                "- Se você mencionar total (R$), você DEVE chamar calcular_total_tool (ou finalizar_pedido_tool).\n"
+                "- Refaça o processamento e CHAME as ferramentas necessárias.\n"
+                "- Não peça desculpas nem mencione erro técnico. Retorne apenas a resposta final ao cliente."
+            )
+        )
+        retry_messages = list(state["messages"]) + [retry_instruction]
+        retry_result = agent.invoke({"messages": retry_messages}, config)
+        retry_response = _extract_response(retry_result)
+        retry_hallucination, retry_reason, retry_tools = _check_cashier_hallucination(retry_result, retry_response)
+        if not retry_hallucination and retry_response:
+            result = retry_result
+            response = retry_response
+            response_lower = response.lower()
+        else:
+            logger.warning(f"⚠️ ALUCINAÇÃO CAIXA (RETRY): {retry_reason}. Tools: {retry_tools}")
+            response = "Desculpe, tive um problema ao processar. Vou verificar seu pedido novamente..."
+            response_lower = response.lower()
     
     # Verificar se o cliente quer voltar ao vendedor
     if "para alterar itens" in response_lower or "mudar o pedido" in response_lower:
