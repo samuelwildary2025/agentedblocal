@@ -114,6 +114,16 @@ def _run_analista_agent_for_term(term: str, telefone: Optional[str] = None) -> d
                 continue
         return None
 
+    # DEBUG: Log all AI messages to diagnose issues
+    ai_messages = []
+    for m in messages:
+        if getattr(m, "type", None) == "ai":
+            content = m.content if isinstance(m.content, str) else str(m.content)
+            ai_messages.append(content[:200] if content else "(empty)")
+    
+    if ai_messages:
+        logger.debug(f"🧠 [ANALISTA] AI messages for '{term}': {ai_messages}")
+
     for m in reversed(messages):
         if getattr(m, "type", None) != "ai":
             continue
@@ -121,24 +131,41 @@ def _run_analista_agent_for_term(term: str, telefone: Optional[str] = None) -> d
         content = (content or "").strip()
         if not content:
             continue
+        
+        # Skip tool_calls-only messages (no actual content)
+        if hasattr(m, 'tool_calls') and m.tool_calls and not content:
+            continue
+            
         try:
             decision = json.loads(content)
-            if isinstance(decision, dict) and decision.get("ok") is True:
-                preco = decision.get("preco")
-                try:
-                    preco_num = float(preco) if preco is not None else 0.0
-                except Exception:
-                    preco_num = 0.0
-                if preco_num <= 0.0 and not decision.get("opcoes"):
-                    preco_tool = _extract_price_from_estoque_preco_tool()
-                    if preco_tool and preco_tool > 0:
-                        decision["preco"] = preco_tool
-            return decision
-        except Exception:
-            return {"ok": False, "termo": term, "motivo": "Resposta nao-JSON do analista"}
+            if isinstance(decision, dict):
+                # Log successful parse
+                logger.info(f"✅ [ANALISTA] Parsed JSON for '{term}': ok={decision.get('ok')}, nome={decision.get('nome', 'N/A')[:30]}")
+                
+                if decision.get("ok") is True:
+                    preco = decision.get("preco")
+                    try:
+                        preco_num = float(preco) if preco is not None else 0.0
+                    except Exception:
+                        preco_num = 0.0
+                    if preco_num <= 0.0 and not decision.get("opcoes"):
+                        preco_tool = _extract_price_from_estoque_preco_tool()
+                        if preco_tool and preco_tool > 0:
+                            decision["preco"] = preco_tool
+                            logger.info(f"💰 [ANALISTA] Price recovered from tool: R$ {preco_tool:.2f}")
+                return decision
+            # If parsed but not a dict, continue looking
+        except json.JSONDecodeError:
+            # Not JSON, continue to next message (FIX: was returning immediately before)
+            logger.debug(f"⚠️ [ANALISTA] Non-JSON response for '{term}': {content[:100]}...")
+            continue
+        except Exception as e:
+            logger.warning(f"⚠️ [ANALISTA] Error parsing response for '{term}': {e}")
+            continue
 
-
-    return {"ok": False, "termo": term, "motivo": "Sem resposta"}
+    # If we got here, no valid JSON was found in any AI message
+    logger.warning(f"❌ [ANALISTA] No valid JSON response for '{term}'. Last content: {ai_messages[-1] if ai_messages else 'N/A'}")
+    return {"ok": False, "termo": term, "motivo": "Sem resposta JSON válida"}
 
 
 # TERM_EXTRACTOR_PROMPT REMOVIDO - Simplificação do fluxo
