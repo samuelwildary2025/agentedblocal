@@ -82,7 +82,7 @@ def _run_analista_agent_for_term(term: str, telefone: Optional[str] = None) -> d
         ensure_ascii=False,
     )
 
-    config = {"recursion_limit": 8}
+    config = {"recursion_limit": 15}
     if telefone:
         config["configurable"] = {"thread_id": telefone}
 
@@ -139,10 +139,17 @@ def _run_analista_agent_for_term(term: str, telefone: Optional[str] = None) -> d
         try:
             decision = json.loads(content)
             if isinstance(decision, dict):
-                # Log successful parse
-                logger.info(f"✅ [ANALISTA] Parsed JSON for '{term}': ok={decision.get('ok')}, nome={decision.get('nome', 'N/A')[:30]}")
+                # Log successful parse with more detail
+                ok_val = decision.get('ok')
+                nome_val = decision.get('nome', 'N/A')
+                motivo_val = decision.get('motivo', '')
                 
-                if decision.get("ok") is True:
+                if ok_val is True:
+                    logger.info(f"✅ [ANALISTA] OK for '{term}': nome={nome_val[:40]}, preco={decision.get('preco')}")
+                else:
+                    logger.warning(f"⚠️ [ANALISTA] FAILED for '{term}': motivo={motivo_val}")
+                
+                if ok_val is True:
                     preco = decision.get("preco")
                     try:
                         preco_num = float(preco) if preco is not None else 0.0
