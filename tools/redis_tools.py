@@ -771,6 +771,107 @@ def remove_item_from_cart(telefone: str, index: int) -> bool:
             pass
 
 
+def update_item_quantity(telefone: str, index: int, quantidade_remover: float) -> dict:
+    """
+    Reduz a quantidade de um item no carrinho.
+    Se a quantidade resultante for <= 0, remove o item completamente.
+    
+    Args:
+        telefone: Número do cliente
+        index: Índice do item (0-based)
+        quantidade_remover: Quantidade a ser removida (ex: 1 para tirar 1 unidade)
+    
+    Returns:
+        {
+            "success": bool,
+            "removed_completely": bool,  # True se item foi removido totalmente
+            "new_quantity": float,  # Nova quantidade (0 se removido)
+            "item_name": str
+        }
+    """
+    client = get_redis_client()
+    raw_phone = "" if telefone is None else str(telefone).strip()
+    telefone = normalize_phone(raw_phone)
+    if client is None:
+        return {"success": False, "removed_completely": False, "new_quantity": 0, "item_name": ""}
+
+    lock_token = None
+    try:
+        if raw_phone and raw_phone != telefone:
+            _maybe_migrate_key(client, f"cart:{raw_phone}", f"cart:{telefone}")
+
+        lock_token = _acquire_lock(client, _lock_key("cart", telefone), ttl_seconds=30, wait_seconds=5)
+        if not lock_token:
+            logger.warning(f"⏳ Timeout aguardando lock do carrinho para {telefone}")
+            return {"success": False, "removed_completely": False, "new_quantity": 0, "item_name": ""}
+
+        key = cart_key(telefone)
+        items = client.lrange(key, 0, -1)
+        
+        if not (0 <= index < len(items)):
+            return {"success": False, "removed_completely": False, "new_quantity": 0, "item_name": ""}
+        
+        # Parse do item
+        try:
+            item = json.loads(items[index])
+        except:
+            return {"success": False, "removed_completely": False, "new_quantity": 0, "item_name": ""}
+        
+        item_name = item.get("produto", "Item")
+        current_qty = float(item.get("quantidade", 1))
+        current_units = int(item.get("unidades", 0))
+        
+        # Calcular nova quantidade
+        new_qty = current_qty - quantidade_remover
+        
+        if new_qty <= 0:
+            # Remover item completamente
+            deleted_marker = "__DELETED__"
+            client.lset(key, index, deleted_marker)
+            client.lrem(key, 0, deleted_marker)
+            logger.info(f"🗑️ Item '{item_name}' removido completamente (quantidade <= 0)")
+            
+            result = {"success": True, "removed_completely": True, "new_quantity": 0, "item_name": item_name}
+        else:
+            # Atualizar quantidade
+            item["quantidade"] = new_qty
+            
+            # Atualizar unidades proporcionalmente se aplicável
+            if current_units > 0:
+                proporcao = new_qty / current_qty
+                item["unidades"] = max(0, int(current_units * proporcao))
+            
+            # Salvar item atualizado
+            client.lset(key, index, json.dumps(item, ensure_ascii=False))
+            logger.info(f"📉 Item '{item_name}' atualizado: {current_qty} → {new_qty}")
+            
+            result = {"success": True, "removed_completely": False, "new_quantity": new_qty, "item_name": item_name}
+        
+        # --- AUTO-UPDATE (Sync Changes) ---
+        try:
+            session = get_order_session(telefone)
+            if session and session.get("status") == "sent":
+                from tools.http_tools import overwrite_order
+                full_cart_after = get_cart_items(telefone)
+                payload_api = json.dumps({"itens": full_cart_after}, ensure_ascii=False)
+                logger.info(f"🔄 Quantidade alterada em pedido enviado: Disparando overwrite_order()")
+                overwrite_order(telefone, payload_api)
+        except Exception as ex_upd:
+            logger.error(f"❌ Falha no sync de alteração: {ex_upd}")
+        
+        return result
+        
+    except Exception as e:
+        logger.error(f"Erro ao atualizar quantidade do item: {e}")
+        return {"success": False, "removed_completely": False, "new_quantity": 0, "item_name": ""}
+    finally:
+        try:
+            if client and lock_token:
+                _release_lock(client, _lock_key("cart", telefone), lock_token)
+        except Exception:
+            pass
+
+
 def clear_cart(telefone: str) -> bool:
     """Remove todo o carrinho."""
     client = get_redis_client()

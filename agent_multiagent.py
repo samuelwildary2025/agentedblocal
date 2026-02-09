@@ -196,17 +196,39 @@ def view_cart_tool(telefone: str) -> str:
     return "\n".join(lines)
 
 @tool
-def remove_item_tool(telefone: str, item_index: int) -> str:
+def remove_item_tool(telefone: str, item_index: int, quantidade: float = 0) -> str:
     """
-    Remover um item do carrinho pelo número (índice 1-based, como mostrado no view_cart).
-    Ex: Para remover o item 1, passe 1.
+    Remover um item do carrinho pelo número (índice 1-based).
+    
+    Se quantidade = 0 ou não informada: Remove o item INTEIRO.
+    Se quantidade > 0: Remove APENAS essa quantidade (ex: tirar 1 unidade de 3).
+    
+    Exemplos:
+    - Cliente: "tira o item 2" → remove_item_tool(tel, 2, 0) → Remove item 2 inteiro
+    - Cliente: "tira 1 nescau" → remove_item_tool(tel, 2, 1) → Remove 1 unidade do item 2
     """
+    from tools.redis_tools import remove_item_from_cart, update_item_quantity
+    
     # Converter para índice 0-based
     idx_zero_based = int(item_index) - 1
-    success = remove_item_from_cart(telefone, idx_zero_based)
-    if success:
-        return f"✅ Item {item_index} removido do carrinho."
-    return f"❌ Erro: Item {item_index} não encontrado."
+    
+    if quantidade > 0:
+        # Remoção PARCIAL - reduz quantidade
+        result = update_item_quantity(telefone, idx_zero_based, quantidade)
+        
+        if result["success"]:
+            if result["removed_completely"]:
+                return f"✅ {result['item_name']} removido completamente do pedido."
+            else:
+                return f"✅ Removido {quantidade} de {result['item_name']}. Agora tem {result['new_quantity']} no pedido."
+        return f"❌ Erro: Item {item_index} não encontrado."
+    else:
+        # Remoção COMPLETA - comportamento original
+        success = remove_item_from_cart(telefone, idx_zero_based)
+        if success:
+            return f"✅ Item {item_index} removido do pedido."
+        return f"❌ Erro: Item {item_index} não encontrado."
+
 
 @tool("ean")
 def ean_tool_alias(query: str) -> str:
