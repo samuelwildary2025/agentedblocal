@@ -18,6 +18,8 @@ import asyncio
 from arq import create_pool
 from arq.connections import RedisSettings
 from urllib.parse import urlparse
+from apscheduler.schedulers.background import BackgroundScheduler
+from scripts.populate_products_db import sync_products_db
 
 # Tenta importar pypdf para leitura de comprovantes
 try:
@@ -48,6 +50,9 @@ app = FastAPI(title="Agente de Supermercado", version="1.7.0")  # Queue-based ve
 
 # ARQ Queue Pool (inicializado no startup)
 arq_pool = None
+
+# Scheduler
+scheduler = BackgroundScheduler()
 
 # --- Models ---
 class WhatsAppMessage(BaseModel):
@@ -989,6 +994,15 @@ async def startup_event():
             )
         )
         logger.info("✅ ARQ Pool inicializado com sucesso")
+        
+        # Iniciar Scheduler de Sincronização de Produtos (1x por hora)
+        if not scheduler.running:
+            scheduler.add_job(sync_products_db, 'interval', hours=1, id='sync_products_job')
+            scheduler.start()
+            # Rodar uma vez logo no início (em thread separada para não bloquear startup)
+            threading.Thread(target=sync_products_db, daemon=True).start()
+            logger.info("⏰ Scheduler iniciado: Sincronização de produtos agendada para cada 1 hora.")
+        
         return
     arq_pool = await create_pool(
         RedisSettings(
@@ -1000,6 +1014,14 @@ async def startup_event():
     )
     logger.info("✅ ARQ Pool inicializado com sucesso")
 
+    # Iniciar Scheduler de Sincronização de Produtos (1x por hora)
+    if not scheduler.running:
+        scheduler.add_job(sync_products_db, 'interval', hours=1, id='sync_products_job')
+        scheduler.start()
+        # Rodar uma vez logo no início (em thread separada para não bloquear startup)
+        threading.Thread(target=sync_products_db, daemon=True).start()
+        logger.info("⏰ Scheduler iniciado: Sincronização de produtos agendada para cada 1 hora.")
+
 @app.on_event("shutdown")
 async def shutdown_event():
     """Fecha pool ARQ no shutdown"""
@@ -1008,6 +1030,11 @@ async def shutdown_event():
         logger.info("🔄 Fechando ARQ Pool...")
         await arq_pool.close()
         logger.info("✅ ARQ Pool fechado")
+    
+    if scheduler.running:
+        logger.info("🔄 Fechando Scheduler...")
+        scheduler.shutdown()
+        logger.info("✅ Scheduler fechado")
 
 # --- ARQ Enqueue Helpers ---
 async def _enqueue_process_job(telefone: str, mensagem: str, message_id: str = None):
@@ -1218,34 +1245,13 @@ graph TD
                 </div>
                 
                 <div class="legend-item vendedor">
-                    <h3>👩‍💼 Vendedor</h3>
+                    <h3>👩‍💼 Vendedor (Agente Único)</h3>
                     <p>Ferramentas disponíveis:</p>
                     <ul>
-                        <li>busca_analista (→ Analista)</li>
+                        <li>busca_produto_tool (DB)</li>
                         <li>add_item_tool</li>
-                        <li>view_cart_tool</li>
+                        <li>ver_pedido_tool</li>
                         <li>remove_item_tool</li>
-                        <li>consultar_encarte</li>
-                        <li>get_pending_suggestions</li>
-                    </ul>
-                </div>
-                
-                <div class="legend-item analista">
-                    <h3>🔍 Analista de Produtos</h3>
-                    <p>Sub-agente chamado pelo Vendedor:</p>
-                    <ul>
-                        <li>Busca vetorial (embeddings)</li>
-                        <li>Consulta EAN e preço</li>
-                        <li>Valida estoque</li>
-                        <li>Retorna JSON com produtos</li>
-                    </ul>
-                </div>
-                
-                <div class="legend-item caixa">
-                    <h3>💰 Caixa</h3>
-                    <p>Ferramentas disponíveis:</p>
-                    <ul>
-                        <li>view_cart_tool</li>
                         <li>calcular_total_tool</li>
                         <li>salvar_endereco_tool</li>
                         <li>finalizar_pedido_tool</li>

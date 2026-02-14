@@ -1,8 +1,8 @@
 """
 Agente de IA Multi-Agente para Atendimento de Supermercado usando LangGraph
-Arquitetura: Orquestrador + Vendedor + Caixa
+Arquitetura: Vendedor (Agente Único)
 
-Versão 5.0 - Multi-Agent Architecture
+Versão 6.0 - Single Agent Architecture
 """
 
 from typing import Dict, Any, TypedDict, Annotated, List, Literal
@@ -20,8 +20,8 @@ import json
 
 from config.settings import settings
 from config.logger import setup_logger
-from tools.http_tools import estoque, pedidos, alterar, ean_lookup, estoque_preco, consultar_encarte
-from tools.search_agent import analista_produtos_tool
+from tools.http_tools import estoque, pedidos, alterar, estoque_preco, consultar_encarte
+
 from tools.time_tool import get_current_time, search_message_history
 from tools.redis_tools import (
     mark_order_sent, 
@@ -57,8 +57,7 @@ def add_messages(left: list, right: list) -> list:
 class AgentState(TypedDict):
     """Estado compartilhado entre os agentes."""
     messages: Annotated[list, add_messages]
-    current_agent: str  # "orchestrator" | "vendedor" | "caixa"
-    intent: str  # "vendas" | "checkout" | "unknown"
+    messages: Annotated[list, add_messages]
     phone: str
     final_response: str  # Resposta final para o cliente
 
@@ -69,17 +68,19 @@ class AgentState(TypedDict):
 # --- FERRAMENTAS DO VENDEDOR ---
 
 @tool
-def estoque_tool(url: str) -> str:
+def busca_produto_tool(query: str) -> str:
     """
-    Consultar estoque e preço atual dos produtos no sistema do supermercado.
-    Ex: 'https://.../api/produtos/consulta?nome=arroz'
+    Busca produtos, preços e estoque no banco de dados do supermercado.
+    Use sempre que precisar verificar se tem um item ou o preço dele.
+    Ex: 'arroz', 'coca cola', 'picanha'
     """
-    return estoque(url)
+    from tools.db_search import search_products_db
+    return search_products_db(query)
 
 @tool
 def add_item_tool(telefone: str, produto: str, quantidade: float = 1.0, observacao: str = "", preco: float = 0.0, unidades: int = 0) -> str:
     """
-    Adicionar um item ao carrinho de compras do cliente.
+    Adicionar um item ao pedido do cliente.
     USAR IMEDIATAMENTE quando o cliente demonstrar intenção de compra.
     
     Para produtos vendidos por KG (frutas, legumes, carnes):
@@ -169,13 +170,13 @@ def reset_pedido_tool(telefone: str) -> str:
     return "✅ Pedido zerado com sucesso! Pode me enviar a nova lista de itens."
 
 @tool
-def view_cart_tool(telefone: str) -> str:
-    """Ver os itens atuais no carrinho do cliente."""
+def ver_pedido_tool(telefone: str) -> str:
+    """Ver os itens atuais no pedido do cliente."""
     items = get_cart_items(telefone)
     if not items:
-        return "🛒 Carrinho vazio."
+        return "📝 Sua lista está vazia."
     
-    lines = ["🛒 **Carrinho atual:**"]
+    lines = ["📝 **Resumo do Pedido:**"]
     total = 0.0
     for i, item in enumerate(items, 1):
         nome = item.get("produto", "Item")
@@ -242,16 +243,6 @@ def estoque_preco_alias(ean: str) -> str:
     """Consulta preço e disponibilidade pelo EAN (apenas dígitos)."""
     return estoque_preco(ean)
 
-# Variável de contexto para compartilhar telefone entre Vendedor e Analista
-from contextvars import ContextVar
-_current_phone: ContextVar[str] = ContextVar('current_phone', default='')
-
-def set_current_phone(phone: str):
-    """Define o telefone atual para o contexto de execução."""
-    _current_phone.set(phone)
-
-def get_current_phone() -> str:
-    """Obtém o telefone atual do contexto de execução."""
     return _current_phone.get()
 
 
@@ -259,111 +250,7 @@ def get_current_phone() -> str:
 # Ferramentas do Analista (Sub-Agente)
 # ============================================
 
-@tool("banco_vetorial")
-def banco_vetorial_tool(query: str, limit: int = 10) -> str:
-    """
-    Busca produtos no banco de dados vetorial do supermercado.
-    Retorna lista de produtos similares ao termo buscado com nome, preço e disponibilidade.
-    
-    Args:
-        query: Termo de busca (ex: "coca 2l", "arroz tio joao", "picadinho")
-        limit: Quantidade máxima de resultados (padrão 10)
-    """
-    from tools.search_agent import _build_options
-    import json
-    
-    options = _build_options(query, limit=limit)
-    
-    if not options:
-        return json.dumps({"produtos": [], "mensagem": f"Nenhum produto encontrado para '{query}'"}, ensure_ascii=False)
-    
-    # Formatar para o Analista entender facilmente
-    produtos = []
-    for opt in options:
-        produtos.append({
-            "nome": opt.get("nome", ""),
-            "preco": opt.get("preco", 0),
-            "disponivel": True,  # Se chegou aqui, tem estoque
-            "categoria": opt.get("categoria", "")
-        })
-    
-    return json.dumps({"produtos": produtos, "termo": query}, ensure_ascii=False)
 
-
-def _call_analista(produtos: str) -> str:
-    """
-    [VENDEDOR -> ANALISTA]
-    Analista de Produtos que busca e organiza produtos.
-    
-    Fluxo simplificado (sem LLM extra):
-    1. Recebe pedido do Vendedor (ex: "coca 2l, arroz")
-    2. Busca no banco vetorial + verifica estoque
-    3. Organiza e retorna lista formatada com preços
-    
-    Args:
-        produtos: Termos de busca separados por vírgula
-    """
-    if not produtos or not produtos.strip():
-        return "❌ Informe os produtos para o analista."
-    
-    telefone = get_current_phone()
-    
-    # Usar busca direta com formatação melhorada (sem LLM extra)
-    # O analista_produtos_tool já retorna JSON organizado com lista_formatada
-    return analista_produtos_tool(produtos, telefone=telefone)
-
-
-@tool("busca_analista")
-def busca_analista_tool(produtos: str) -> str:
-    """
-    Encaminha nomes de produtos para o analista e retorna produto + preço.
-    Use quando o cliente pedir itens e você precisar do preço oficial.
-    """
-    return _call_analista(produtos)
-
-@tool
-def consultar_encarte_tool() -> str:
-    """
-    Consulta o encarte (folheto de ofertas) atual do supermercado.
-    Use APENAS se o cliente perguntar explicitamente sobre ofertas, promoções ou encarte.
-    
-    Returns:
-        JSON com a URL (campo encarte_url) ou lista de URLs (campo active_encartes_urls) das imagens.
-    """
-    return consultar_encarte()
-
-@tool
-def get_pending_suggestions_tool(telefone: str) -> str:
-    """
-    [RECUPERAR SUGESTÕES PENDENTES]
-    Use quando o cliente responder 'sim', 'pode', 'quero' para confirmar produtos sugeridos anteriormente.
-    
-    Retorna os produtos que foram sugeridos na última busca, com EAN, nome e preço.
-    Após recuperar, você DEVE chamar add_item_tool para cada produto.
-    
-    Args:
-        telefone: Número do cliente
-    
-    Returns:
-        Lista de produtos pendentes no formato JSON, ou mensagem de erro.
-    """
-    from tools.redis_tools import get_suggestions, clear_suggestions
-    import json
-    
-    suggestions = get_suggestions(telefone)
-    
-    if not suggestions:
-        return "❌ Nenhuma sugestão pendente encontrada. Peça ao cliente para especificar o que deseja."
-    
-    # Limpar cache após recuperar (para não repetir)
-    clear_suggestions(telefone)
-    
-    # Formatar para o agente
-    output = "✅ PRODUTOS PENDENTES RECUPERADOS (ADICIONE COM add_item_tool):\n"
-    for prod in suggestions:
-        output += f"- Nome: {prod.get('nome')}\n  Preço: R$ {prod.get('preco', 0):.2f}\n\n"
-    
-    return output
 
 # --- FERRAMENTAS DO CAIXA ---
 
@@ -379,7 +266,7 @@ def calcular_total_tool(telefone: str, taxa_entrega: float = 0.0) -> str:
     """
     items = get_cart_items(telefone)
     if not items:
-        return "❌ Carrinho vazio. Não é possível calcular total."
+        return "❌ Pedido vazio. Não é possível calcular total."
     
     subtotal = 0.0
     item_details = []
@@ -435,7 +322,7 @@ def finalizar_pedido_tool(cliente: str, telefone: str, endereco: str, forma_paga
     
     items = get_cart_items(telefone)
     if not items:
-        return "❌ O carrinho está vazio! Adicione produtos antes de finalizar."
+        return "❌ O pedido está vazio! Adicione produtos antes de finalizar."
     
     comprovante_salvo = get_comprovante(telefone)
     comprovante_final = comprovante or comprovante_salvo or ""
@@ -550,26 +437,24 @@ def calculadora_tool(expressao: str) -> str:
 VENDEDOR_TOOLS = [
     # ean_tool_alias, -> Removido: Use busca_analista (Analista)
     # estoque_preco_alias, -> Removido: Use busca_analista (Analista)
-    busca_analista_tool,
+    # busca_analista_tool, -> REMOVIDO
     # estoque_tool, -> (Já estava encapsulado na busca_analista, confirmando remoção completa do acesso direto)
     reset_pedido_tool,
     add_item_tool,
-    view_cart_tool,
+    reset_pedido_tool,
+    add_item_tool,
+    ver_pedido_tool,
     remove_item_tool,
-    consultar_encarte_tool,
-    get_pending_suggestions_tool,  # Memória compartilhada com Analista
+    # consultar_encarte_tool, -> REMOVIDO (estava junto com ferramentas do analista no bloco anterior, verificar se mantem)
+    # get_pending_suggestions_tool, -> REMOVIDO
     time_tool,
-    search_history_tool,
-    calculadora_tool,  # Para cálculos precisos de valores
-]
-
-CAIXA_TOOLS = [
-    view_cart_tool,
+    # search_history_tool, -> REMOVIDO (Simplificação)
+    calculadora_tool,
+    busca_produto_tool,
+    # Tools do Caixa (agora no Vendedor)
     calcular_total_tool,
-    finalizar_pedido_tool,
     salvar_endereco_tool,
-    time_tool,
-    calculadora_tool,  # Para conferir valores
+    finalizar_pedido_tool,
 ]
 
 # ============================================
@@ -631,78 +516,8 @@ def _build_fast_llm():
 # Nós do Grafo (Agentes)
 # ============================================
 
-def orchestrator_node(state: AgentState) -> dict:
-    """
-    Nó Orquestrador: Classifica a intenção e roteia para o agente correto.
-    Usa um prompt ultra-leve (~150 tokens).
-    """
-    logger.info("🧠 [ORCHESTRATOR] Analisando intenção...")
-    
-    llm = _build_fast_llm()
-    prompt = load_prompt("orchestrator.md")
-    
-    last_user_message = ""
-    recent_lines = []
-    for msg in reversed(state["messages"]):
-        if isinstance(msg, HumanMessage):
-            content = msg.content if isinstance(msg.content, str) else str(msg.content)
-            content = re.sub(r'\[TELEFONE_CLIENTE:.*?\]', '', content)
-            content = re.sub(r'\[HORÁRIO_ATUAL:.*?\]', '', content)
-            content = re.sub(r'\[URL_IMAGEM:.*?\]', '', content)
-            content = content.strip()
-            if content:
-                if not last_user_message:
-                    last_user_message = content
-                recent_lines.append(f"Cliente: {content}")
-        elif isinstance(msg, AIMessage):
-            if hasattr(msg, 'tool_calls') and msg.tool_calls:
-                continue
-            content = msg.content if isinstance(msg.content, str) else str(msg.content)
-            content = re.sub(r'\[TELEFONE_CLIENTE:.*?\]', '', content)
-            content = re.sub(r'\[HORÁRIO_ATUAL:.*?\]', '', content)
-            content = re.sub(r'\[URL_IMAGEM:.*?\]', '', content)
-            content = content.strip()
-            if content:
-                recent_lines.append(f"Agente: {content}")
-        if len(recent_lines) >= 8:
-            break
-    
-    recent_lines = list(reversed(recent_lines))
-    conversation = "\n".join(recent_lines).strip()
-    
-    if not conversation and not last_user_message:
-        logger.warning("⚠️ [ORCHESTRATOR] Nenhuma mensagem do usuário encontrada")
-        return {"intent": "vendas", "current_agent": "vendedor"}
-    
-    user_payload = conversation if conversation else last_user_message
-    
-    messages = [
-        SystemMessage(content=prompt),
-        HumanMessage(content=user_payload)
-    ]
-    
-    try:
-        response = llm.invoke(messages)
-        intent_raw = response.content.strip().lower()
-        
-        # Normalizar resposta
-        if "checkout" in intent_raw or "caixa" in intent_raw:
-            intent = "checkout"
-        else:
-            intent = "vendas"
-        
-        logger.info(f"🧠 [ORCHESTRATOR] Intenção detectada: {intent} (raw: '{intent_raw}')")
-        
-        new_agent = "caixa" if intent == "checkout" else "vendedor"
-        
-        return {
-            "intent": intent,
-            "current_agent": new_agent
-        }
-        
-    except Exception as e:
-        logger.error(f"❌ [ORCHESTRATOR] Erro: {e}")
-        return {"intent": "vendas", "current_agent": "vendedor"}
+# Orquestrador removido
+
 
 
 def vendedor_node(state: AgentState) -> dict:
@@ -711,8 +526,7 @@ def vendedor_node(state: AgentState) -> dict:
     """
     logger.info("👩‍💼 [VENDEDOR] Processando...")
     
-    # Definir telefone no contexto para memória compartilhada com Analista
-    set_current_phone(state["phone"])
+    # set_current_phone(state["phone"]) # REMOVIDO: Contexto do analista
     
     prompt = load_prompt("vendedor.md")
     llm = _build_llm(temperature=0.0)  # Temperatura 0 para seguir regras do prompt
@@ -743,13 +557,14 @@ def vendedor_node(state: AgentState) -> dict:
                 hallucination_detected_local = True
                 hallucination_reason_local = "disse 'adicionei' sem chamar add_item_tool"
 
-        if "encontrei" in response_lower_local and "busca_analista" not in tools_called_local:
-            if "get_pending_suggestions_tool" not in tools_called_local:
-                hallucination_detected_local = True
-                hallucination_reason_local = "disse 'encontrei' sem buscar"
+        if "encontrei" in response_lower_local:
+             # Verificação de alucinação simplificada sem busca_analista
+             pass
 
         return hallucination_detected_local, hallucination_reason_local, tools_called_local
 
+    tools_called_with_messages = []
+    
     result = agent.invoke({"messages": state["messages"]}, config)
     response = _extract_response(result)
 
@@ -761,7 +576,7 @@ def vendedor_node(state: AgentState) -> dict:
             content=(
                 "RETRY INTERNO (não mostrar ao cliente): sua última resposta foi inválida.\n"
                 "- Se você afirmar que adicionou itens, você DEVE chamar add_item_tool.\n"
-                "- Se você afirmar que encontrou produtos, você DEVE chamar busca_analista (ou get_pending_suggestions_tool).\n"
+                # "- Se você afirmar que encontrou produtos, você DEVE chamar busca_analista (ou get_pending_suggestions_tool).\n" -> REMOVIDO
                 "- Refaça o processamento do pedido e CHAME as ferramentas necessárias.\n"
                 "- Não peça desculpas nem mencione erro técnico. Retorne apenas a resposta final ao cliente."
             )
@@ -785,188 +600,25 @@ def vendedor_node(state: AgentState) -> dict:
     }
 
 
-def caixa_node(state: AgentState) -> dict:
-    """
-    Nó Caixa: Agente especializado em checkout com prompt enxuto.
-    """
-    logger.info("💰 [CAIXA] Processando...")
-    
-    prompt = load_prompt("caixa.md")
-    llm = _build_llm(temperature=0.0)  # Cálculos precisos
-    
-    # Criar agente ReAct com as ferramentas do caixa
-    agent = create_react_agent(llm, CAIXA_TOOLS, prompt=prompt)
-    
-    # Configuração
-    config = {
-        "configurable": {"thread_id": state["phone"]},
-        "recursion_limit": 15  # Limite menor, operações mais simples
-    }
-    
-    def _check_cashier_hallucination(agent_result: dict, agent_response: str) -> tuple[bool, str, set]:
-        messages_local = agent_result.get("messages", []) if isinstance(agent_result, dict) else []
-        tools_called_local = set()
-        for msg in messages_local:
-            if isinstance(msg, AIMessage) and hasattr(msg, "tool_calls") and msg.tool_calls:
-                for call in msg.tool_calls:
-                    tools_called_local.add(call["name"])
+# Caixa removido e Roteamento removido
 
-        response_lower_local = (agent_response or "").lower()
-        hallucination_detected_local = False
-        hallucination_reason_local = ""
-
-        confirmacao_words = ["pedido confirmado", "pedido enviado", "pedido finalizado", "✅ pedido"]
-        if any(w in response_lower_local for w in confirmacao_words):
-            if "finalizar_pedido_tool" not in tools_called_local:
-                hallucination_detected_local = True
-                hallucination_reason_local = "disse 'pedido confirmado' sem chamar finalizar_pedido_tool"
-
-        import re
-        total_match = re.search(r"total[:\s]*r\$\s*\d+", response_lower_local)
-        if total_match and "calcular_total_tool" not in tools_called_local and "finalizar_pedido_tool" not in tools_called_local:
-            hallucination_detected_local = True
-            hallucination_reason_local = "mencionou total sem calcular"
-
-        return hallucination_detected_local, hallucination_reason_local, tools_called_local
-
-    result = agent.invoke({"messages": state["messages"]}, config)
-    response = _extract_response(result)
-
-    hallucination_detected, hallucination_reason, tools_called = _check_cashier_hallucination(result, response)
-    if hallucination_detected:
-        logger.warning(f"⚠️ ALUCINAÇÃO CAIXA: {hallucination_reason}. Tools: {tools_called}")
-
-        retry_instruction = SystemMessage(
-            content=(
-                "RETRY INTERNO (não mostrar ao cliente): sua última resposta foi inválida.\n"
-                "- Se você afirmar que confirmou/finalizou o pedido, você DEVE chamar finalizar_pedido_tool.\n"
-                "- Se você mencionar total (R$), você DEVE chamar calcular_total_tool (ou finalizar_pedido_tool).\n"
-                "- Refaça o processamento e CHAME as ferramentas necessárias.\n"
-                "- Não peça desculpas nem mencione erro técnico. Retorne apenas a resposta final ao cliente."
-            )
-        )
-        retry_messages = list(state["messages"]) + [retry_instruction]
-        retry_result = agent.invoke({"messages": retry_messages}, config)
-        retry_response = _extract_response(retry_result)
-        retry_hallucination, retry_reason, retry_tools = _check_cashier_hallucination(retry_result, retry_response)
-        if not retry_hallucination and retry_response:
-            result = retry_result
-            response = retry_response
-            response_lower = response.lower()
-        else:
-            logger.warning(f"⚠️ ALUCINAÇÃO CAIXA (RETRY): {retry_reason}. Tools: {retry_tools}")
-            response = "Desculpe, tive um problema ao processar. Vou verificar seu pedido novamente..."
-            response_lower = response.lower()
-    
-    # Verificar se o cliente quer voltar ao vendedor
-    if "para alterar itens" in response_lower or "mudar o pedido" in response_lower:
-        logger.info("💰 [CAIXA] Cliente quer alterar → Devolvendo para Orquestrador")
-        return {
-            "final_response": response,
-            "current_agent": "orchestrator",
-            "messages": result.get("messages", [])[-1:] if result.get("messages") else []
-        }
-    
-    logger.info(f"💰 [CAIXA] Resposta: {response[:100]}...")
-    
-    return {
-        "final_response": response,
-        "messages": result.get("messages", [])[-1:] if result.get("messages") else []
-    }
-
-
-def _extract_response(result: dict) -> str:
-    """Extrai a resposta textual do resultado do agente."""
-    if not result or "messages" not in result:
-        return "Desculpe, tive um problema. Pode repetir?"
-    
-    messages = result["messages"]
-    
-    for msg in reversed(messages):
-        if not isinstance(msg, AIMessage):
-            continue
-        
-        if hasattr(msg, 'tool_calls') and msg.tool_calls:
-            continue
-        
-        content = msg.content if isinstance(msg.content, str) else str(msg.content)
-        
-        if not content or not content.strip():
-            continue
-        
-        if content.strip().startswith(("[", "{")):
-            continue
-        
-        return content
-    
-    return "Desculpe, não consegui processar. Pode repetir?"
-
-# ============================================
-# Roteamento
-# ============================================
-
-def route_by_intent(state: AgentState) -> Literal["vendedor", "caixa"]:
-    """Decide para qual agente rotear baseado na intenção."""
-    intent = state.get("intent", "vendas")
-    
-    if intent == "checkout":
-        return "caixa"
-    return "vendedor"
-
-def route_from_caixa(state: AgentState) -> Literal["end", "orchestrator"]:
-    """
-    Decide se o caixa finaliza ou devolve para o orquestrador.
-    """
-    # Se o nó caixa definiu 'current_agent' como 'orchestrator', voltamos
-    current = state.get("current_agent", "caixa")
-    if current == "orchestrator":
-        return "orchestrator"
-    
-    return "end"
 
 # ============================================
 # Construção do Grafo
 # ============================================
 
 def build_multi_agent_graph():
-    """Constrói o StateGraph com a arquitetura de 3 agentes."""
+    """Constrói o StateGraph com a arquitetura de Agente Único (Vendedor)."""
     
     graph = StateGraph(AgentState)
     
-    # Adicionar nós
-    graph.add_node("orchestrator", orchestrator_node)
+    # Adicionar nó único
     graph.add_node("vendedor", vendedor_node)
-    graph.add_node("caixa", caixa_node)
     
-    # Fluxo: START → Orquestrador
-    graph.add_edge(START, "orchestrator")
-    
-    # Orquestrador decide para onde ir
-    graph.add_conditional_edges(
-        "orchestrator",
-        route_by_intent,
-        {
-            "vendedor": "vendedor",
-            "caixa": "caixa"
-        }
-    )
-    
-    # Vendedor termina (mas poderia loopar se quisesse, por enquanto mantemos simples)
+    # Fluxo: START → Vendedor → END
+    graph.add_edge(START, "vendedor")
     graph.add_edge("vendedor", END)
     
-    # Caixa pode terminar ou voltar
-    graph.add_conditional_edges(
-        "caixa",
-        route_from_caixa,
-        {
-            "end": END,
-            "orchestrator": "orchestrator"
-        }
-    )
-    
-    # Compilar
-    # REMOVIDO CHECKPOINTER: Para evitar vazamento de estado entre sessões (cross-talk).
-    # O estado é passado completo via 'messages' (Redis/Postgres) a cada execução.
     return graph.compile()
 
 # ============================================
@@ -1063,8 +715,6 @@ def run_agent_langgraph(telefone: str, mensagem: str) -> Dict[str, Any]:
         
         initial_state = {
             "messages": all_messages,
-            "current_agent": "orchestrator",
-            "intent": "unknown",
             "phone": telefone,
             "final_response": ""
         }

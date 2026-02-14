@@ -6,7 +6,7 @@ import json
 from typing import Dict, Any, Optional
 from config.settings import settings
 from config.logger import setup_logger
-from .db_vector_search import search_products_vector
+
 
 logger = setup_logger(__name__)
 
@@ -304,18 +304,7 @@ def overwrite_order(telefone: str, json_body: str) -> str:
         return error_msg
 
 
-def ean_lookup(query: str) -> str:
-    """
-    Busca informações/EAN do produto via busca vetorial (pgvector + OpenAI embeddings).
 
-    Args:
-        query: Texto com o nome/descrição do produto ou entrada de chat.
-
-    Returns:
-        String com lista de EANs encontrados ou mensagem de erro.
-    """
-    logger.info(f"🔍 [VECTOR] Consultando pgvector: query='{query}'")
-    return search_products_vector(query)
 
 
 
@@ -641,16 +630,7 @@ def estoque_preco(ean: str) -> str:
 # ANTIGA BUSCA EM LOTE (Descontinuada em favor do Sub-Agente)
 # ============================================
 
-def busca_lote_produtos(produtos: list[str]) -> str:
-    """
-    OBSOLETO: Esta função foi substituída pelo `search_specialist_tool` (Sub-Agente).
-    Mantida apenas como stub para evitar quebras se algo antigo chamar.
-    """
-    from tools.search_agent import search_specialist_tool
-    
-    # Redireciona para a nova tool do sub-agente
-    queries_str = ",".join(produtos)
-    return search_specialist_tool(queries_str)
+
 
 
 
