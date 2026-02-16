@@ -686,14 +686,20 @@ def vendedor_node(state: AgentState) -> dict:
     if hallucination_detected:
         logger.warning(f"⚠️ ALUCINAÇÃO DETECTADA: {hallucination_reason}. Tools usadas: {tools_called}")
 
+        # Montar retry com o motivo ESPECÍFICO do erro
         retry_instruction = SystemMessage(
             content=(
-                "RETRY INTERNO (não mostrar ao cliente): sua última resposta foi inválida.\n"
-                "- Se você afirmar que adicionou itens, você DEVE chamar add_item_tool.\n"
-                "- Se você afirmar que encontrou produtos, você DEVE chamar busca_produto_tool.\n"
-                "- Se você mencionar preços, DEVE ter consultado busca_produto_tool antes.\n"
-                "- Refaça o processamento do pedido e CHAME as ferramentas necessárias.\n"
-                "- Não peça desculpas nem mencione erro técnico. Retorne apenas a resposta final ao cliente."
+                f"RETRY INTERNO (não mostrar ao cliente): sua última resposta foi REJEITADA.\n"
+                f"MOTIVO: {hallucination_reason}\n"
+                f"Tools que você chamou: {', '.join(tools_called) if tools_called else 'NENHUMA'}\n\n"
+                f"CORRIJA seguindo estas etapas OBRIGATÓRIAS:\n"
+                f"1. Se o cliente pediu produtos, chame busca_produto_tool para CADA produto.\n"
+                f"2. Analise os resultados da busca (preço, estoque, match_ok).\n"
+                f"3. Chame add_item_tool para CADA produto encontrado, usando o preço RETORNADO pela busca.\n"
+                f"4. SÓ DEPOIS de chamar add_item_tool, responda ao cliente confirmando.\n"
+                f"5. NUNCA diga 'adicionei' se não chamou add_item_tool.\n"
+                f"6. NUNCA cite preços se não chamou busca_produto_tool.\n\n"
+                f"Processe o pedido do cliente AGORA chamando as ferramentas corretas."
             )
         )
         retry_messages = list(state["messages"]) + [retry_instruction]
