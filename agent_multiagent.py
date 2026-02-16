@@ -657,12 +657,23 @@ def vendedor_node(state: AgentState) -> dict:
         # 3. Mencionou preço (R$) sem buscar no banco primeiro
         if not hallucination_detected_local:
             import re as _re
-            price_mentions = _re.findall(r"r\$\s*\d+[,\.]\d{2}", response_lower_local)
-            if price_mentions and "busca_produto_tool" not in tools_called_local and "add_item_tool" not in tools_called_local:
-                # Tolerância: se está apenas mostrando o total (calcular_total_tool foi chamado), ok
-                if "calcular_total_tool" not in tools_called_local and "ver_pedido_tool" not in tools_called_local:
-                    hallucination_detected_local = True
-                    hallucination_reason_local = f"citou preços ({price_mentions[:3]}) sem consultar busca_produto_tool"
+            # Regex para capturar R$ XX,XX ou "50 reais"
+            price_mentions = _re.findall(r"(?:r\$\s*|(?:\d+)\s+reais)\d+(?:[,\.]\d{2})?", response_lower_local)
+            
+            # Se mencionou preço, DEVEMOS ter contexto de busca ou de fechamento
+            if price_mentions:
+                # Contextos permitidos para falar de preço SEM buscar produto:
+                # 1. Está fechando o pedido (calcular total)
+                is_checkout = "calcular_total_tool" in tools_called_local or "finalizar_pedido_tool" in tools_called_local
+                # 2. Usuário falou de pagamento/troco (contexto da mensagem atual)
+                user_msg_lower = (state["messages"][-1].content or "").lower()
+                is_payment_context = any(t in user_msg_lower for t in ["troco", "pagamento", "pix", "cartao", "dinheiro", "nota"])
+                
+                # Se NÃO for checkout E NÃO for contexto de pagamento, aí sim exige busca
+                if not is_checkout and not is_payment_context:
+                    if "busca_produto_tool" not in tools_called_local and "add_item_tool" not in tools_called_local:
+                        hallucination_detected_local = True
+                        hallucination_reason_local = f"citou preços ({price_mentions[:3]}) sem consultar busca_produto_tool (e não é fechamento)"
 
         return hallucination_detected_local, hallucination_reason_local, tools_called_local
 
