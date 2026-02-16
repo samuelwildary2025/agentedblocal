@@ -2,9 +2,12 @@
 import json
 import re
 import unicodedata
+import difflib
 from typing import Any, Dict, List, Optional
+import threading
 
 import psycopg2
+import psycopg2.pool
 from psycopg2 import sql
 from psycopg2.extras import RealDictCursor
 
@@ -13,6 +16,49 @@ from config.logger import setup_logger
 from tools.redis_tools import save_suggestions
 
 logger = setup_logger(__name__)
+
+# Connection pool (singleton, thread-safe)
+_db_pool: Optional[psycopg2.pool.SimpleConnectionPool] = None
+_pool_lock = threading.Lock()
+
+def _get_connection():
+    """Obtém uma conexão do pool (ou cria o pool na primeira chamada)."""
+    global _db_pool
+    if _db_pool is None or _db_pool.closed:
+        with _pool_lock:
+            if _db_pool is None or _db_pool.closed:
+                try:
+                    _db_pool = psycopg2.pool.SimpleConnectionPool(
+                        minconn=1,
+                        maxconn=5,
+                        dsn=settings.postgres_connection_string
+                    )
+                    logger.info("🔌 Pool de conexões Postgres criado (min=1, max=5)")
+                except Exception as e:
+                    logger.error(f"Falha ao criar pool Postgres: {e}")
+                    # Fallback para conexão direta
+                    return psycopg2.connect(settings.postgres_connection_string)
+    try:
+        return _db_pool.getconn()
+    except Exception as e:
+        logger.warning(f"Pool esgotado, criando conexão direta: {e}")
+        return psycopg2.connect(settings.postgres_connection_string)
+
+def _return_connection(conn):
+    """Devolve a conexão ao pool."""
+    global _db_pool
+    if _db_pool is not None and not _db_pool.closed:
+        try:
+            _db_pool.putconn(conn)
+            return
+        except Exception:
+            pass
+    # Se pool não disponível, fecha diretamente
+    try:
+        conn.close()
+    except Exception:
+        pass
+
 
 _TERM_TRANSLATIONS_CACHE: Optional[Dict[str, str]] = None
 
@@ -161,6 +207,45 @@ def _strip_accents(text: str) -> str:
     )
 
 
+def _tokenize_for_match(text: str) -> List[str]:
+    t = _strip_accents((text or "").lower())
+    t = re.sub(r"[^a-z0-9]+", " ", t)
+    tokens = [x for x in t.split(" ") if x]
+    drop_tokens = {
+        "de",
+        "da",
+        "do",
+        "das",
+        "dos",
+        "a",
+        "o",
+        "as",
+        "os",
+        "um",
+        "uma",
+        "uns",
+        "umas",
+        "e",
+    }
+    return [t for t in tokens if t and t not in drop_tokens]
+
+
+def _score_match(query: str, name: str, category: str) -> float:
+    q_tokens = _tokenize_for_match(_normalize_units_in_text(query))
+    if not q_tokens:
+        return 0.0
+    name_tokens = _tokenize_for_match(name)
+    category_tokens = _tokenize_for_match(category)
+    candidate_tokens = set(name_tokens + category_tokens)
+    overlap = len(set(q_tokens) & candidate_tokens) / max(len(set(q_tokens)), 1)
+    q_norm = " ".join(q_tokens)
+    name_norm = " ".join(name_tokens)
+    if not name_norm:
+        return round(overlap, 4)
+    ratio = difflib.SequenceMatcher(None, q_norm, name_norm).ratio()
+    return round(0.6 * overlap + 0.4 * ratio, 4)
+
+
 def _safe_float(v: Any, default: float = 0.0) -> float:
     try:
         if v is None:
@@ -173,16 +258,25 @@ def _safe_float(v: Any, default: float = 0.0) -> float:
 def _format_results(rows: List[Dict[str, Any]]) -> str:
     output: List[Dict[str, Any]] = []
     for row in rows:
-        output.append(
-            {
-                "id": row.get("id"),
-                "nome": row.get("nome") or "Produto sem nome",
-                "preco": _safe_float(row.get("preco"), 0.0),
-                "estoque": _safe_float(row.get("estoque"), 0.0),
-                "unidade": row.get("unidade") or "UN",
-                "categoria": row.get("categoria") or "",
-            }
-        )
+        estoque_val = _safe_float(row.get("estoque"), 0.0)
+        categoria = row.get("categoria") or ""
+        # Frigorífico sempre disponível (vendido por peso)
+        is_frigorifico = "frigori" in categoria.lower() or "acougue" in categoria.lower() or "açougue" in categoria.lower()
+        sem_estoque = estoque_val <= 0 and not is_frigorifico
+        
+        item = {
+            "id": row.get("id"),
+            "nome": row.get("nome") or "Produto sem nome",
+            "preco": _safe_float(row.get("preco"), 0.0),
+            "estoque": estoque_val,
+            "unidade": row.get("unidade") or "UN",
+            "categoria": categoria,
+            "match_score": _safe_float(row.get("match_score"), 0.0),
+            "match_ok": bool(row.get("match_ok")),
+        }
+        if sem_estoque:
+            item["aviso"] = "SEM ESTOQUE - NÃO VENDER"
+        output.append(item)
     return json.dumps(output, ensure_ascii=False)
 
 
@@ -213,9 +307,10 @@ def search_products_db(query: str, limit: int = 8, telefone: Optional[str] = Non
     limit = max(1, min(int(limit or 8), 25))
 
     conn = None
+    is_pool_conn = True
     cursor = None
     try:
-        conn = psycopg2.connect(settings.postgres_connection_string)
+        conn = _get_connection()
         cursor = conn.cursor(cursor_factory=RealDictCursor)
 
         cursor.execute(
@@ -402,6 +497,13 @@ def search_products_db(query: str, limit: int = 8, telefone: Optional[str] = Non
             if filtered:
                 results = filtered
 
+        if results:
+            for r in results:
+                score = _score_match(q, r.get("nome") or "", r.get("categoria") or "")
+                r["match_score"] = score
+                r["match_ok"] = score >= 0.55
+            results = sorted(results, key=lambda r: r.get("match_score", 0.0), reverse=True)
+
         json_str = _format_results(results)
 
         if telefone:
@@ -413,6 +515,7 @@ def search_products_db(query: str, limit: int = 8, telefone: Optional[str] = Non
                             "nome": r.get("nome") or "",
                             "preco": _safe_float(r.get("preco"), 0.0),
                             "termo_busca": q,
+                            "match_ok": bool(r.get("match_ok")),
                         }
                     )
                 save_suggestions(telefone, products_for_cache)
@@ -431,6 +534,6 @@ def search_products_db(query: str, limit: int = 8, telefone: Optional[str] = Non
             pass
         try:
             if conn is not None:
-                conn.close()
+                _return_connection(conn)
         except Exception:
             pass

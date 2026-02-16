@@ -57,7 +57,6 @@ def add_messages(left: list, right: list) -> list:
 class AgentState(TypedDict):
     """Estado compartilhado entre os agentes."""
     messages: Annotated[list, add_messages]
-    messages: Annotated[list, add_messages]
     phone: str
     final_response: str  # Resposta final para o cliente
 
@@ -70,12 +69,72 @@ class AgentState(TypedDict):
 @tool
 def busca_produto_tool(telefone: str, query: str) -> str:
     """
-    Busca produtos, preços e estoque no banco de dados do supermercado.
-    Use sempre que precisar verificar se tem um item ou o preço dele.
-    Ex: 'arroz', 'coca cola', 'picanha'
+    Busca produtos e preços. Tenta ser inteligente: se não achar de primeira,
+    refaz a busca com termos mais genéricos automaticamente.
     """
     from tools.db_search import search_products_db
-    return search_products_db(query, telefone=telefone)
+    import json
+    
+    # 1. Busca Original
+    resultado_json = search_products_db(query, telefone=telefone)
+    resultados = json.loads(resultado_json)
+    
+    # Analisar qualidade dos resultados
+    melhor_score = 0.0
+    if resultados:
+        melhor_score = max([r.get("match_score", 0.0) for r in resultados])
+    
+    # 2. Se score baixo (< 0.6) ou vazio, tenta limpar a query (Retry Automático)
+    if not resultados or melhor_score < 0.6:
+        # Tenta remover termos comuns que atrapalham (marcas, medidas, etc) se a query for longa
+        termos_limpeza = ["de", "da", "do", "com", "sem", "g", "kg", "ml", "litros", "unidade"]
+        query_limpa = " ".join([p for p in query.split() if p.lower() not in termos_limpeza])
+        
+        if query_limpa != query and len(query_limpa) > 3:
+            logger.info(f"🔄 Retry Busca Inteligente: '{query}' -> '{query_limpa}'")
+            resultado_retry_json = search_products_db(query_limpa, telefone=telefone)
+            resultados_retry = json.loads(resultado_retry_json)
+            
+            # Se o retry trouxe algo melhor, usa ele
+            score_retry = 0.0
+            if resultados_retry:
+                score_retry = max([r.get("match_score", 0.0) for r in resultados_retry])
+            
+            if score_retry > melhor_score:
+                resultado_json = resultado_retry_json
+                resultados = resultados_retry
+
+    # 3. Análise de Ambiguidade de Categoria
+    if resultados:
+        # Filtrar apenas os que têm match razoável
+        top_results = [r for r in resultados if r.get("match_score", 0) > 0.5]
+        categorias = set()
+        for r in top_results:
+            cat = r.get("categoria", "").upper()
+            # Simplificar categorias para evitar falsos positivos (ex: MERCEARIA DOCE vs MERCEARIA SALGADA)
+            if "LIMPEZA" in cat: cat = "LIMPEZA"
+            elif "HIGIENE" in cat: cat = "HIGIENE"
+            elif "BEBIDAS" in cat: cat = "BEBIDAS"
+            elif "AÇOUGUE" in cat or "CARNE" in cat: cat = "AÇOUGUE"
+            elif "HORTIFRUTI" in cat or "LEGUMES" in cat: cat = "HORTIFRUTI"
+            
+            if cat:
+                categorias.add(cat)
+        
+        # Se encontrou categorias muito distintas (ex: LIMPEZA e HIGIENE)
+        if len(categorias) > 1 and "LIMPEZA" in categorias and "HIGIENE" in categorias:
+             warning = {
+                 "id": "AVISO_AMBIGUIDADE",
+                 "nome": "⚠️ AMBIGUIDADE DETECTADA",
+                 "preco": 0.0,
+                 "estoque": 0,
+                 "match_ok": False,
+                 "aviso": f"Encontrei produtos de categorias diferentes ({', '.join(categorias)}). PERGUNTE ao cliente qual ele deseja antes de adicionar."
+             }
+             resultados.insert(0, warning)
+             resultado_json = json.dumps(resultados, ensure_ascii=False)
+
+    return resultado_json
 
 @tool
 def add_item_tool(telefone: str, produto: str, quantidade: float = 1.0, observacao: str = "", preco: float = 0.0, unidades: int = 0) -> str:
@@ -128,9 +187,21 @@ def add_item_tool(telefone: str, produto: str, quantidade: float = 1.0, observac
                     preco = preco_recuperado
                     logger.info(f"✨ [AUTO-HEAL] Preço recuperado para '{produto}': R$ {preco:.2f} (baseado em '{melhor_match.get('nome')}')")
     
-    # --- LOGICA ANTIGA REMOVIDA: A conversão agora é feita pelo LLM ---
-    # O LLM deve calcular e enviar 'quantidade' já com o peso em KG.
-    # Ex: 6 pães * 0.050kg = 0.300kg -> Prompt envia quantidade=0.3
+    # BLOQUEIO: Não permitir adicionar item sem preço válido
+    if preco <= 0.01:
+        logger.warning(f"🚫 [ADD_ITEM] Bloqueado: '{produto}' sem preço válido (R$ {preco:.2f}). Use busca_produto_tool primeiro.")
+        return f"❌ Não consegui encontrar o preço de '{produto}'. Use busca_produto_tool para verificar o preço antes de adicionar."
+    
+    # Validar match_ok nas sugestões — se o produto não passou na validação, avisar
+    sugestoes_validacao = get_suggestions(telefone)
+    if sugestoes_validacao:
+        for sug in sugestoes_validacao:
+            nome_sug = sug.get("nome", "").lower()
+            if prod_lower in nome_sug or nome_sug in prod_lower:
+                if not sug.get("match_ok", True):
+                    logger.warning(f"⚠️ [ADD_ITEM] Produto '{produto}' tem match_ok=false. Pedindo confirmação.")
+                    return f"⚠️ '{produto}' não parece ser uma correspondência exata. Confirme com o cliente qual opção ele deseja antes de adicionar."
+                break
     
     if unidades > 0 and quantidade <= 0.01:
          logger.warning(f"⚠️ [ADD_ITEM] Item '{produto}' com unidades={unidades} mas peso zerado. O LLM deveria ter calculado.")
@@ -242,8 +313,6 @@ def ean_tool_alias(query: str) -> str:
 def estoque_preco_alias(ean: str) -> str:
     """Consulta preço e disponibilidade pelo EAN (apenas dígitos)."""
     return estoque_preco(ean)
-
-    return _current_phone.get()
 
 
 # ============================================
@@ -383,15 +452,30 @@ def finalizar_pedido_tool(cliente: str, telefone: str, endereco: str, forma_paga
     
     json_body = json_lib.dumps(payload, ensure_ascii=False)
     
+    # AUDIT LOG: Registrar payload completo antes de enviar
+    try:
+        from datetime import datetime
+        audit_entry = {
+            "timestamp": datetime.now().isoformat(),
+            "telefone": telefone,
+            "cliente": cliente,
+            "total": round(total, 2),
+            "itens_count": len(itens_formatados),
+            "payload": payload
+        }
+        import os
+        os.makedirs("logs", exist_ok=True)
+        with open("logs/pedidos_audit.jsonl", "a", encoding="utf-8") as f:
+            f.write(json_lib.dumps(audit_entry, ensure_ascii=False) + "\n")
+        logger.info(f"📋 [AUDIT] Pedido registrado para {telefone} - R$ {total:.2f}")
+    except Exception as audit_err:
+        logger.warning(f"⚠️ Falha no audit log: {audit_err}")
+    
     result = pedidos(json_body)
     
     if "sucesso" in result.lower() or "✅" in result:
         # NÃO LIMPAR O CARRINHO AQUI!
         # O carrinho deve persistir por 15 minutos (TTL do Redis) para permitir alterações.
-        # clear_cart(telefone) -> REMOVIDO
-        
-        # O comprovante pode ser limpo ou não? Melhor manter por segurança, mas o pedido já foi.
-        # clear_comprovante(telefone) -> REMOVIDO (TTL cuida disso)
         
         mark_order_sent(telefone, result) # Atualiza o status da sessão para 'sent'
         
@@ -435,23 +519,13 @@ def calculadora_tool(expressao: str) -> str:
 # ============================================
 
 VENDEDOR_TOOLS = [
-    # ean_tool_alias, -> Removido: Use busca_analista (Analista)
-    # estoque_preco_alias, -> Removido: Use busca_analista (Analista)
-    # busca_analista_tool, -> REMOVIDO
-    # estoque_tool, -> (Já estava encapsulado na busca_analista, confirmando remoção completa do acesso direto)
-    reset_pedido_tool,
-    add_item_tool,
-    reset_pedido_tool,
+    busca_produto_tool,
     add_item_tool,
     ver_pedido_tool,
     remove_item_tool,
-    # consultar_encarte_tool, -> REMOVIDO (estava junto com ferramentas do analista no bloco anterior, verificar se mantem)
-    # get_pending_suggestions_tool, -> REMOVIDO
+    reset_pedido_tool,
     time_tool,
-    # search_history_tool, -> REMOVIDO (Simplificação)
     calculadora_tool,
-    busca_produto_tool,
-    # Tools do Caixa (agora no Vendedor)
     calcular_total_tool,
     salvar_endereco_tool,
     finalizar_pedido_tool,
@@ -568,14 +642,27 @@ def vendedor_node(state: AgentState) -> dict:
         hallucination_detected_local = False
         hallucination_reason_local = ""
 
+        # 1. Disse "adicionei" sem chamar add_item_tool
         if "adicionei" in response_lower_local or "adicionado" in response_lower_local:
             if "add_item_tool" not in tools_called_local:
                 hallucination_detected_local = True
                 hallucination_reason_local = "disse 'adicionei' sem chamar add_item_tool"
 
+        # 2. Disse "encontrei" sem chamar busca_produto_tool
         if "encontrei" in response_lower_local:
-             # Verificação de alucinação simplificada sem busca_analista
-             pass
+            if "busca_produto_tool" not in tools_called_local:
+                hallucination_detected_local = True
+                hallucination_reason_local = "disse 'encontrei' sem chamar busca_produto_tool"
+
+        # 3. Mencionou preço (R$) sem buscar no banco primeiro
+        if not hallucination_detected_local:
+            import re as _re
+            price_mentions = _re.findall(r"r\$\s*\d+[,\.]\d{2}", response_lower_local)
+            if price_mentions and "busca_produto_tool" not in tools_called_local and "add_item_tool" not in tools_called_local:
+                # Tolerância: se está apenas mostrando o total (calcular_total_tool foi chamado), ok
+                if "calcular_total_tool" not in tools_called_local and "ver_pedido_tool" not in tools_called_local:
+                    hallucination_detected_local = True
+                    hallucination_reason_local = f"citou preços ({price_mentions[:3]}) sem consultar busca_produto_tool"
 
         return hallucination_detected_local, hallucination_reason_local, tools_called_local
 
@@ -592,7 +679,8 @@ def vendedor_node(state: AgentState) -> dict:
             content=(
                 "RETRY INTERNO (não mostrar ao cliente): sua última resposta foi inválida.\n"
                 "- Se você afirmar que adicionou itens, você DEVE chamar add_item_tool.\n"
-                # "- Se você afirmar que encontrou produtos, você DEVE chamar busca_analista (ou get_pending_suggestions_tool).\n" -> REMOVIDO
+                "- Se você afirmar que encontrou produtos, você DEVE chamar busca_produto_tool.\n"
+                "- Se você mencionar preços, DEVE ter consultado busca_produto_tool antes.\n"
                 "- Refaça o processamento do pedido e CHAME as ferramentas necessárias.\n"
                 "- Não peça desculpas nem mencione erro técnico. Retorne apenas a resposta final ao cliente."
             )
@@ -709,7 +797,7 @@ def run_agent_langgraph(telefone: str, mensagem: str) -> Dict[str, Any]:
                         break
             
             if ultima_pergunta_ia:
-                mensagem_expandida = f"O cliente respondeu '{clean_message}' CONFIRMANDO. Sua mensagem anterior foi: \"{ultima_pergunta_ia}...\". Se você sugeriu produtos, recupere as sugestões pendentes (get_pending_suggestions_tool) e só então adicione os itens confirmados (add_item_tool). Não invente preço."
+                mensagem_expandida = f"O cliente respondeu '{clean_message}' CONFIRMANDO. Sua mensagem anterior foi: \"{ultima_pergunta_ia}...\". Se você sugeriu produtos, use busca_produto_tool para confirmar preço e só então adicione os itens confirmados com add_item_tool. Não invente preço."
                 logger.info(f"🔄 Mensagem curta expandida: '{clean_message}'")
         elif msg_lower in ["nao", "não", "n", "nope", "nao quero", "não quero"]:
             mensagem_expandida = f"O cliente respondeu '{clean_message}' (NEGATIVO). Pergunte se precisa de mais alguma coisa."
