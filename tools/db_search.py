@@ -519,7 +519,7 @@ def search_products_db(query: str, limit: int = 8, telefone: Optional[str] = Non
                 "moido": "primeira",
                 "kisuki": "refresco",
                 "refresco": "po",
-                "creme": "leite",
+                "creme leite": "creme",
                 "alho": "kg",
             }
             q_lower = q.lower()
