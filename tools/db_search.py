@@ -275,7 +275,7 @@ def _format_results(rows: List[Dict[str, Any]]) -> str:
             "id": row.get("id"),
             "nome": row.get("nome") or "Produto sem nome",
             "preco": _safe_float(row.get("preco"), 0.0),
-            "estoque": estoque_val,
+            "disponivel": not sem_estoque,
             "unidade": row.get("unidade") or "UN",
             "categoria": categoria,
             "match_score": _safe_float(row.get("match_score"), 0.0),
