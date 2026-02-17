@@ -260,9 +260,16 @@ def _format_results(rows: List[Dict[str, Any]]) -> str:
     for row in rows:
         estoque_val = _safe_float(row.get("estoque"), 0.0)
         categoria = row.get("categoria") or ""
-        # Frigorífico sempre disponível (vendido por peso)
-        is_frigorifico = "frigori" in categoria.lower() or "acougue" in categoria.lower() or "açougue" in categoria.lower()
-        sem_estoque = estoque_val <= 0 and not is_frigorifico
+        # Frigorífico e Hortifruti sempre disponíveis (vendido por peso ou variável)
+        # Palavras-chave que indicam produtos que não devem validar estoque zerado
+        keywords_ignore = ["frigori", "acougue", "açougue", "bovinos", "horti", "legume", "verdura", "fruta", "aves", "frios", "embutidos"]
+        is_ignora_estoque = any(k in categoria.lower() for k in keywords_ignore)
+        
+        # Se for um desses itens e estoque vier zerado/negativo, forçamos um valor positivo
+        if is_ignora_estoque and estoque_val <= 0:
+             estoque_val = 100.0
+             
+        sem_estoque = estoque_val <= 0 and not is_ignora_estoque
         
         item = {
             "id": row.get("id"),
