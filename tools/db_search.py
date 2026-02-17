@@ -515,6 +515,8 @@ def search_products_db(query: str, limit: int = 8, telefone: Optional[str] = Non
             PRIORITY_BOOST = {
                 "frango": "abatido",
                 "calabresa": "kg",
+                "moida": "primeira",
+                "moido": "primeira",
             }
             q_lower = q.lower()
             for termo, boost_word in PRIORITY_BOOST.items():
