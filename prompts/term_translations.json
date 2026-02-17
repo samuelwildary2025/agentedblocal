@@ -1,7 +1,7 @@
 {
   "__COMENTARIO__": "Este arquivo traduz termos coloquiais, erros de digitação e marcas famosas para os nomes oficiais no cadastro de produtos.",
   "__MERCEARIA_BASICA__": "---",
-  "aroz": "arroz",
+  "frango": "frango abatido",
   "feijao": "feijao",
   "acucar": "acucar",
   "sal": "sal refinado",
@@ -179,6 +179,9 @@
   "fofo": "amaciante fofo",
   "downy": "amaciante downy",
   "agua sanitaria": "agua sanitaria",
+  "quiboa": "agua sanitaria",
+  "kiboa": "agua sanitaria",
+  "qboa": "agua sanitaria",
   "candida": "agua sanitaria",
   "cloro": "cloro",
   "desinfetante": "desinfetante",
