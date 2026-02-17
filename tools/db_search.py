@@ -288,6 +288,10 @@ def _format_results(rows: List[Dict[str, Any]]) -> str:
              
         sem_estoque = estoque_val <= 0 and not is_ignora_estoque
         
+        # Produtos sem estoque são completamente omitidos dos resultados
+        if sem_estoque:
+            continue
+        
         item = {
             "id": row.get("id"),
             "nome": row.get("nome") or "Produto sem nome",
@@ -298,8 +302,6 @@ def _format_results(rows: List[Dict[str, Any]]) -> str:
             "match_score": _safe_float(row.get("match_score"), 0.0),
             "match_ok": bool(row.get("match_ok")),
         }
-        if sem_estoque:
-            item["aviso"] = "SEM ESTOQUE - NÃO VENDER"
         output.append(item)
     return json.dumps(output, ensure_ascii=False)
 
