@@ -192,7 +192,17 @@ def _apply_term_translations(query: str) -> str:
     if not translations:
         return " ".join(cleaned_tokens).strip() or q
 
-    replaced = [translations.get(w, w) for w in cleaned_tokens]
+    # FASE 1: Substituições multi-palavra (ex: "frango inteiro" → "frango abatido")
+    # Checar pares e trios de tokens contra o dicionário
+    multi_keys = {k for k in translations if " " in k}
+    joined = " ".join(cleaned_tokens)
+    for mk in sorted(multi_keys, key=len, reverse=True):  # mais longo primeiro
+        if mk in joined:
+            joined = joined.replace(mk, translations[mk])
+    
+    # FASE 2: Substituições de palavra individual para tokens restantes
+    final_tokens = joined.split(" ")
+    replaced = [translations.get(w, w) for w in final_tokens if w]
     out = " ".join(replaced).strip()
     return out or q
 
@@ -262,8 +272,15 @@ def _format_results(rows: List[Dict[str, Any]]) -> str:
         categoria = row.get("categoria") or ""
         # Frigorífico e Hortifruti sempre disponíveis (vendido por peso ou variável)
         # Palavras-chave que indicam produtos que não devem validar estoque zerado
-        keywords_ignore = ["frigori", "acougue", "açougue", "bovinos", "horti", "legume", "verdura", "fruta", "aves", "frios", "embutidos"]
+        keywords_ignore = ["frigori", "acougue", "açougue", "bovinos", "horti", "legume", "verdura", "fruta", "aves", "frios", "embutidos", "flv"]
+        nome_lower = (row.get("nome") or "").lower()
         is_ignora_estoque = any(k in categoria.lower() for k in keywords_ignore)
+        
+        # Fallback: se o nome termina com "kg" e categoria não é limpeza/higiene, provavelmente é produto fresco
+        if not is_ignora_estoque and nome_lower.strip().endswith("kg"):
+            categorias_excluidas = ["limpeza", "higiene", "bebida", "mercearia"]
+            if not any(c in categoria.lower() for c in categorias_excluidas):
+                is_ignora_estoque = True
         
         # Se for um desses itens e estoque vier zerado/negativo, forçamos um valor positivo
         if is_ignora_estoque and estoque_val <= 0:
