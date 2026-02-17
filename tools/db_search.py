@@ -511,22 +511,33 @@ def search_products_db(query: str, limit: int = 8, telefone: Optional[str] = Non
                 r["match_ok"] = score >= 0.55
             results = sorted(results, key=lambda r: r.get("match_score", 0.0), reverse=True)
 
-            # PRIORIZAÇÃO: Quando o cliente busca um termo genérico, priorizar o produto preferido
-            # Mapa: termo_busca -> palavra que DEVE aparecer primeiro no resultado
+            # PRIORIZAÇÃO 1: Frango → abatido sempre primeiro
             PRIORITY_BOOST = {
                 "frango": "abatido",
-                "tomate": "kg",
             }
             q_lower = q.lower()
             for termo, boost_word in PRIORITY_BOOST.items():
                 if termo in q_lower:
-                    # Separar: produtos com boost_word primeiro, depois o resto
                     boosted = [r for r in results if boost_word in (r.get("nome") or "").lower()]
                     others = [r for r in results if boost_word not in (r.get("nome") or "").lower()]
                     if boosted:
                         results = boosted + others
                         logger.info(f"⬆️ Priorização: '{boost_word}' movido para o topo da busca '{q}'")
                     break
+
+            # PRIORIZAÇÃO 2: Frutas/Legumes/Verduras — produtos com "KG" no nome vêm primeiro
+            # Ex: "TOMATE KG", "MELANCIA KG", "CEBOLA KG" devem aparecer antes de versões industrializadas
+            HORTI_CATEGORIES = ["horti", "fruta", "legume", "verdura", "flv"]
+            has_horti_results = any(
+                any(k in (r.get("categoria") or "").lower() for k in HORTI_CATEGORIES)
+                for r in results
+            )
+            if has_horti_results:
+                kg_boosted = [r for r in results if (r.get("nome") or "").upper().strip().endswith("KG")]
+                kg_others = [r for r in results if not (r.get("nome") or "").upper().strip().endswith("KG")]
+                if kg_boosted:
+                    results = kg_boosted + kg_others
+                    logger.info(f"⬆️ Priorização Horti: {len(kg_boosted)} produto(s) KG movido(s) para o topo")
 
         json_str = _format_results(results)
 
