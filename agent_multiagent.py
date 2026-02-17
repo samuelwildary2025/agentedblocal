@@ -806,24 +806,25 @@ def run_agent_langgraph(telefone: str, mensagem: str) -> Dict[str, Any]:
         if image_url:
             contexto += f"[URL_IMAGEM: {image_url}]\n"
         
-        # 3.1 Consultar dados cadastrados do cliente
-        try:
-            from tools.http_tools import consultar_cliente
-            cliente_data = consultar_cliente(telefone)
-            if cliente_data and cliente_data.get("nome"):
-                nome_cli = cliente_data["nome"]
-                endereco_cli = cliente_data.get("endereco", "")
-                bairro_cli = cliente_data.get("bairro", "")
-                cidade_cli = cliente_data.get("cidade", "")
-                total_ped = cliente_data.get("total_pedidos", 0)
-                endereco_full = ", ".join(p for p in [endereco_cli, bairro_cli, cidade_cli] if p.strip())
-                contexto += f"[CLIENTE_CADASTRADO: {nome_cli} | Endereço: {endereco_full} | Pedidos anteriores: {total_ped}]\n"
-                logger.info(f"👤 Cliente cadastrado: {nome_cli} ({total_ped} pedidos)")
-            else:
+        # 3.1 Consultar dados cadastrados do cliente (APENAS na primeira mensagem da sessão)
+        if not previous_messages:
+            try:
+                from tools.http_tools import consultar_cliente
+                cliente_data = consultar_cliente(telefone)
+                if cliente_data and cliente_data.get("nome"):
+                    nome_cli = cliente_data["nome"]
+                    endereco_cli = cliente_data.get("endereco", "")
+                    bairro_cli = cliente_data.get("bairro", "")
+                    cidade_cli = cliente_data.get("cidade", "")
+                    total_ped = cliente_data.get("total_pedidos", 0)
+                    endereco_full = ", ".join(p for p in [endereco_cli, bairro_cli, cidade_cli] if p.strip())
+                    contexto += f"[CLIENTE_CADASTRADO: {nome_cli} | Endereço: {endereco_full} | Pedidos anteriores: {total_ped}]\n"
+                    logger.info(f"👤 Cliente cadastrado: {nome_cli} ({total_ped} pedidos)")
+                else:
+                    contexto += "[CLIENTE_NOVO: não cadastrado]\n"
+            except Exception as e:
+                logger.warning(f"⚠️ Falha ao consultar cliente: {e}")
                 contexto += "[CLIENTE_NOVO: não cadastrado]\n"
-        except Exception as e:
-            logger.warning(f"⚠️ Falha ao consultar cliente: {e}")
-            contexto += "[CLIENTE_NOVO: não cadastrado]\n"
         
         # Expansão de mensagens curtas
         mensagem_expandida = clean_message
