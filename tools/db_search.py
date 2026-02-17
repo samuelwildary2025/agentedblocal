@@ -276,10 +276,22 @@ def _format_results(rows: List[Dict[str, Any]]) -> str:
         nome_lower = (row.get("nome") or "").lower()
         is_ignora_estoque = any(k in categoria.lower() for k in keywords_ignore)
         
-        # Fallback: se o nome termina com "kg" e categoria não é limpeza/higiene, provavelmente é produto fresco
+        # Fallback 1: se o nome termina com "kg" e categoria não é limpeza/higiene, provavelmente é produto fresco
         if not is_ignora_estoque and nome_lower.strip().endswith("kg"):
-            categorias_excluidas = ["limpeza", "higiene", "bebida", "mercearia"]
+            categorias_excluidas = ["limpeza", "higiene", "bebida"]
             if not any(c in categoria.lower() for c in categorias_excluidas):
+                is_ignora_estoque = True
+        
+        # Fallback 2: Nomes de frutas/legumes/verduras comuns — SEMPRE disponível
+        if not is_ignora_estoque:
+            horti_nomes = [
+                "laranja", "banana", "maca ", "maça", "tomate", "batata", "cebola",
+                "cenoura", "beterraba", "limao", "mamao", "melancia", "melao",
+                "abacaxi", "manga", "uva", "goiaba", "pera ", "repolho", "alface",
+                "couve", "pepino", "chuchu", "abobrinha", "berinjela", "pimentao",
+                "milho verde", "mandioca", "inhame", "maxixe", "quiabo",
+            ]
+            if any(h in nome_lower for h in horti_nomes):
                 is_ignora_estoque = True
         
         # Se for um desses itens e estoque vier zerado/negativo, forçamos um valor positivo
