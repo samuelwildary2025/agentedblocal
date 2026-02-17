@@ -119,6 +119,31 @@ def estoque(url: str) -> str:
         return error_msg
 
 
+def consultar_cliente(telefone: str) -> Optional[Dict[str, Any]]:
+    """
+    Consulta dados cadastrais de um cliente pelo telefone no dashboard.
+    
+    Returns:
+        Dict com {nome, endereco, bairro, cidade, total_pedidos} ou None se não encontrado.
+    """
+    base = settings.supermercado_base_url.rstrip("/")
+    # Normalizar telefone para apenas dígitos
+    digits = "".join(c for c in telefone if c.isdigit())
+    url = f"{base}/pedidos/cliente/{digits}"
+    
+    try:
+        response = requests.get(url, headers=get_auth_headers(), timeout=5)
+        if response.status_code == 404:
+            return None
+        response.raise_for_status()
+        data = response.json()
+        logger.info(f"👤 Cliente encontrado: {data.get('nome', '?')} ({data.get('total_pedidos', 0)} pedidos)")
+        return data
+    except Exception as e:
+        logger.warning(f"⚠️ Erro ao consultar cliente {telefone}: {e}")
+        return None
+
+
 def pedidos(json_body: str) -> str:
     """
     Envia um pedido finalizado para o painel dos funcionários (dashboard).
