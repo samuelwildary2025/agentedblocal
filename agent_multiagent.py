@@ -666,8 +666,18 @@ def vendedor_node(state: AgentState) -> dict:
                 # 1. Está fechando o pedido (calcular total)
                 is_checkout = "calcular_total_tool" in tools_called_local or "finalizar_pedido_tool" in tools_called_local
                 # 2. Usuário falou de pagamento/troco (contexto da mensagem atual)
-                user_msg_lower = (state["messages"][-1].content or "").lower()
-                is_payment_context = any(t in user_msg_lower for t in ["troco", "pagamento", "pix", "cartao", "dinheiro", "nota"])
+            # PEGAR A ÚLTIMA MENSAGEM DO TIPO HUMANMESSAGE PARA GARANTIR
+            user_msgs = [m for m in state["messages"] if isinstance(m, HumanMessage)]
+            user_msg_lower = (user_msgs[-1].content or "").lower() if user_msgs else ""
+            
+            logger.info(f"🔍 [HALLUCINATION_CHECK] User Msg: '{user_msg_lower}'")
+
+            payment_terms = ["troco", "pagamento", "pix", "cartao", "cartão", "dinheiro", "nota", "card", "cash"]
+            is_payment_context = any(t in user_msg_lower for t in payment_terms)
+            
+            # Se for contexto de pagamento, LOGAR que dispensou checagem
+            if is_payment_context:
+                logger.debug("💰 Contexto de pagamento detectado. Dispensando verificação de preço.")
                 
                 # Se NÃO for checkout E NÃO for contexto de pagamento, aí sim exige busca
                 if not is_checkout and not is_payment_context:
