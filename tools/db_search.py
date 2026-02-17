@@ -515,6 +515,7 @@ def search_products_db(query: str, limit: int = 8, telefone: Optional[str] = Non
             # Mapa: termo_busca -> palavra que DEVE aparecer primeiro no resultado
             PRIORITY_BOOST = {
                 "frango": "abatido",
+                "tomate": "kg",
             }
             q_lower = q.lower()
             for termo, boost_word in PRIORITY_BOOST.items():
