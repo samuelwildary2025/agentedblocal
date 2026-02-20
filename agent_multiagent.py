@@ -623,11 +623,7 @@ def vendedor_node(state: AgentState) -> dict:
         hallucination_detected_local = False
         hallucination_reason_local = ""
 
-        # 1. Disse "adicionei" sem chamar add_item_tool
-        if "adicionei" in response_lower_local or "adicionado" in response_lower_local:
-            if "add_item_tool" not in tools_called_local:
-                hallucination_detected_local = True
-                hallucination_reason_local = "disse 'adicionei' sem chamar add_item_tool"
+        # 1. REMOVIDO: A regra de 'add_item_tool' não faz mais sentido no modo Sem Carrinho.
 
         # 2. Disse "encontrei" sem chamar busca_produto_tool
         if "encontrei" in response_lower_local:
