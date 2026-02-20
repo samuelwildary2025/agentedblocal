@@ -787,7 +787,7 @@ def run_agent_langgraph(telefone: str, mensagem: str) -> Dict[str, Any]:
         if image_url:
             contexto += f"[URL_IMAGEM: {image_url}]\n"
         
-        # 3.1 Consultar dados cadastrados do cliente (Sempre injetar para contexto de endereço/bairro)
+        # 3.1 Consultar dados cadastrados do cliente (Sempre injetar para endereço/bairro)
         try:
             from tools.http_tools import consultar_cliente
             cliente_data = consultar_cliente(telefone)
@@ -798,13 +798,21 @@ def run_agent_langgraph(telefone: str, mensagem: str) -> Dict[str, Any]:
                 cidade_cli = cliente_data.get("cidade", "")
                 total_ped = cliente_data.get("total_pedidos", 0)
                 endereco_full = ", ".join(p for p in [endereco_cli, bairro_cli, cidade_cli] if p.strip())
-                contexto += f"[CLIENTE_CADASTRADO: {nome_cli} | Endereço: {endereco_full} | Pedidos anteriores: {total_ped}]\n"
+                
+                # Se for a primeira mensagem, injeta a tag de Saudação. Se não, apenas informa os dados silenciando o trigger.
+                if len(previous_messages) == 0:
+                    contexto += f"[CLIENTE_CADASTRADO: {nome_cli} | Endereço: {endereco_full} | Pedidos anteriores: {total_ped}]\n[SESSÃO] Nova conversa.\n"
+                else:
+                    contexto += f"[DADOS DO CLIENTE PARA ENTREGA: {nome_cli} | Endereço: {endereco_full}]\n"
+                
                 logger.info(f"👤 Cliente cadastrado: {nome_cli} ({total_ped} pedidos)")
             else:
-                contexto += "[CLIENTE_NOVO: não cadastrado]\n"
+                if len(previous_messages) == 0:
+                     contexto += "[CLIENTE_NOVO: não cadastrado]\n[SESSÃO] Nova conversa.\n"
         except Exception as e:
             logger.warning(f"⚠️ Falha ao consultar cliente: {e}")
-            contexto += "[CLIENTE_NOVO: não cadastrado]\n"
+            if len(previous_messages) == 0:
+                 contexto += "[CLIENTE_NOVO: não cadastrado]\n[SESSÃO] Nova conversa.\n"
         
         # Expansão de mensagens curtas
         mensagem_expandida = clean_message
