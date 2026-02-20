@@ -71,6 +71,11 @@ def busca_produto_tool(telefone: str, query: str) -> str:
     """
     Busca produtos e preços. Tenta ser inteligente: se não achar de primeira,
     refaz a busca com termos mais genéricos automaticamente.
+
+    Retorna um JSON list com os dados dos produtos:
+    [{"nome": "...", "categoria": "...", "preco": 10.0, "estoque": 5}]
+
+    Usa chamadas na API FastAPI local.
     """
     from tools.db_search import search_products_db
     import json
@@ -373,25 +378,30 @@ def salvar_endereco_tool(telefone: str, endereco: str) -> str:
     return "❌ Erro ao salvar endereço."
 
 @tool
-def finalizar_pedido_tool(cliente: str, telefone: str, endereco: str, forma_pagamento: str, observacao: str = "", comprovante: str = "", taxa_entrega: float = 0.0) -> str:
+def finalizar_pedido_tool(cliente: str, telefone: str, endereco: str, forma_pagamento: str, itens_json: str, observacao: str = "", comprovante: str = "", taxa_entrega: float = 0.0) -> str:
     """
-    Finalizar o pedido usando os itens que estão no carrinho.
-    Use quando o cliente confirmar que quer fechar a compra.
+    Finalizar o pedido enviando TODOS os itens confirmados.
+    Use quando o cliente confirmar que quer fechar a compra e repasse todos os itens do contexto da conversa.
     
     Args:
     - cliente: Nome do cliente
     - telefone: Telefone (com DDD)
     - endereco: Endereço de entrega completo
     - forma_pagamento: Pix, Cartão ou Dinheiro
+    - itens_json: String em formato JSON com todos os itens, ex: [{"produto": "Arroz", "quantidade": 2.0, "preco": 20.0}]
     - observacao: Observações extras (troco, etc)
     - comprovante: URL do comprovante PIX (se houver)
     - taxa_entrega: Valor da taxa de entrega em reais (opcional, padrão 0)
     """
     import json as json_lib
     
-    items = get_cart_items(telefone)
+    try:
+        items = json_lib.loads(itens_json)
+    except Exception as e:
+        return f"❌ Erro ao ler os itens do pedido: erro de formato JSON - {e}. Corrija o JSON e tente novamente."
+        
     if not items:
-        return "❌ O pedido está vazio! Adicione produtos antes de finalizar."
+        return "❌ O pedido está vazio! Você deve repassar a lista de produtos confirmados."
     
     comprovante_salvo = get_comprovante(telefone)
     comprovante_final = comprovante or comprovante_salvo or ""
@@ -400,9 +410,9 @@ def finalizar_pedido_tool(cliente: str, telefone: str, endereco: str, forma_paga
     itens_formatados = []
     
     for item in items:
-        preco = item.get("preco", 0.0)
-        quantidade = item.get("quantidade", 1.0)
-        unidades = item.get("unidades", 0)
+        preco = float(item.get("preco", 0.0))
+        quantidade = float(item.get("quantidade", 1.0))
+        unidades = int(item.get("unidades", 0))
         obs_item = item.get("observacao", "")
         total += preco * quantidade
         
@@ -491,38 +501,13 @@ def search_history_tool(telefone: str, keyword: str = None) -> str:
     """Busca mensagens anteriores do cliente com horários."""
     return search_message_history(telefone, keyword)
 
-@tool
-def calculadora_tool(expressao: str) -> str:
-    """
-    Calculadora simples para operações matemáticas gerais.
-    Use SEMPRE para conferir cálculos antes de informar valores ao cliente.
-    Ex: '4 * 2.29' (resultado: 9.16), '15.99 + 3.00' (resultado: 18.99)
-    """
-    try:
-        # Sanitização básica (permitir apenas math)
-        allowed = set("0123456789.+-*/() ")
-        if not all(c in allowed for c in expressao):
-            return "❌ Caracteres inválidos na expressão."
-        
-        # Eval seguro após sanitização
-        resultado = eval(expressao, {"__builtins__": None}, {})
-        return f"🔢 {expressao} = {resultado:.2f}"
-    except Exception as e:
-        return f"❌ Erro: {str(e)}"
-
 # ============================================
 # Listas de Ferramentas por Agente
 # ============================================
 
 VENDEDOR_TOOLS = [
     busca_produto_tool,
-    add_item_tool,
-    ver_pedido_tool,
-    remove_item_tool,
-    reset_pedido_tool,
     time_tool,
-    calculadora_tool,
-    calcular_total_tool,
     salvar_endereco_tool,
     finalizar_pedido_tool,
 ]
@@ -779,7 +764,7 @@ def run_agent_langgraph(telefone: str, mensagem: str) -> Dict[str, Any]:
 
     # 1. Recuperar histórico (Híbrido: Redis=Contexto, Postgres=Log)
     from memory.hybrid_memory import HybridChatMessageHistory
-    history_handler = HybridChatMessageHistory(session_id=telefone, redis_ttl=settings.human_takeover_ttl or 900)
+    history_handler = HybridChatMessageHistory(session_id=telefone, redis_ttl=getattr(settings, 'redis_ttl', 2400))
     
     previous_messages = []
     try:

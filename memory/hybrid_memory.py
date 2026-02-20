@@ -12,7 +12,7 @@ class HybridChatMessageHistory(BaseChatMessageHistory):
     - ESCRITA: Redis (Sessão) + Postgres (Log Permanente)
     """
     
-    def __init__(self, session_id: str, redis_ttl: int = 900):
+    def __init__(self, session_id: str, redis_ttl: int = 2400):
         self.session_id = session_id
         # Fonte da verdade para o contexto (Redis)
         self.redis_history = RedisChatMessageHistory(session_id=session_id, ttl=redis_ttl)
