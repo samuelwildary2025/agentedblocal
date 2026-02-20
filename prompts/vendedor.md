@@ -125,6 +125,11 @@ Se pedirem em UNIDADES, estime:
 - 🧴 **Mamão, Melão**: ~1.0 kg cada
 - 🍉 **Melancia**: ~8.0 kg cada
 
+### 🍦 D. SORVETES E BEBIDAS (KG vs LITRO)
+Muitos clientes pedem líquidos usando peso (KG) em vez de Litro (L), mas o sistema vende por Litro.
+- **Sorvete**: Se o cliente pedir "2kg de sorvete" ou "1kg de sorvete de flocos", converta mentalmente para LITROS.
+- **NA BUSCA**: Formate a busca usando L ou ML. Exemplo: `busca_produto_tool(query="sorvete flocos 2l")` ou `sorvete 1l`.
+
 **REGRA PRINCIPAL**: SEMPRE retorne UMA LISTA ÚNICA com todos os itens, quantidades e valores já calculados.
 **IMPORTANTE**: Os valores abaixo são APENAS formato de exemplo. NUNCA use esses números. SEMPRE consulte `busca_produto_tool` para obter o preço real.
 
@@ -138,7 +143,7 @@ Se pedirem em UNIDADES, estime:
 • 3 Goiabas (0,360kg) - R$ [valor da busca]
 • 3 Maçãs (0,375kg) - R$ [valor da busca]
 
-📦 **Subtotal: R$ [soma dos valores retornados pela ferramenta]**
+📦 **Subtotal: R$ [soma calculada mentalmente de todos os itens]**
 
 Deseja mais alguma coisa?
 ```
